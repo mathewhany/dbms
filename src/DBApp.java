@@ -1,7 +1,10 @@
-import java.util.Hashtable;
-import java.util.Iterator;
+import java.io.File;
+import java.io.IOException;
+import java.util.*;
 
 public class DBApp {
+    private static final String METADATA_FILE_PATH = "metadata.csv";
+
     /**
      * Executed once when the application starts.
      */
@@ -26,7 +29,38 @@ public class DBApp {
             Hashtable<String, String> columnMin,
             Hashtable<String, String> columnMax
     ) throws DBAppException {
+        CsvLoader csvLoader = new CsvLoader();
+        Vector<LinkedHashMap<String, String>> tableRows = new Vector<>();
 
+        File metadataFile = new File(METADATA_FILE_PATH);
+        if (metadataFile.exists()) {
+            try {
+                tableRows = csvLoader.load(METADATA_FILE_PATH);
+            } catch (IOException e) {
+                throw new DBAppException("Failed to load metadata file");
+            }
+        }
+
+        Set<String> columnNames = columnTypes.keySet();
+
+        for (String columnName : columnNames) {
+            LinkedHashMap<String, String> row = new LinkedHashMap<>();
+            row.put("Table Name", tableName);
+            row.put("Column Name", columnName);
+            row.put("Column Type", columnTypes.get(columnName));
+            row.put("ClusteringKey", columnName.equals(clusteringKeyColumn) ? "True" : "False");
+            row.put("IndexName", "null");
+            row.put("IndexType", "null");
+            row.put("min", columnMin.get(columnName));
+            row.put("max", columnMax.get(columnName));
+            tableRows.add(row);
+        }
+
+        try {
+            csvLoader.save(METADATA_FILE_PATH, tableRows);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**
