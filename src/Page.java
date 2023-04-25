@@ -3,10 +3,10 @@ import java.util.Hashtable;
 import java.util.Vector;
 
 public class Page implements Serializable {
-    private Vector<Hashtable<String, Object>> rows = new Vector<>();
+    private Vector<Row> rows = new Vector<>();
     private String fileName;
-    private String clusteringKeyColumn;
-    private int maxRows = 100;
+    private String clusteringKeyColumnName;
+    private int maxRows = 2;
 
     public static Page load(String fileName) throws DBAppException {
         try {
@@ -26,38 +26,24 @@ public class Page implements Serializable {
 
             ois.writeObject(this);
         } catch (IOException e) {
+            e.printStackTrace();
             throw new DBAppException("Saving page failed: " + fileName);
         }
     }
 
-    public Vector<Hashtable<String, Object>> getRows() {
+    public Vector<Row> getRows() {
         return rows;
     }
 
-    public Hashtable<String, Object> insert(Hashtable<String, Object> row) {
+    public Row insert(Row row) {
         if (rows.size() == 0) {
             rows.add(row);
             return null;
         }
 
-        int left = 0;
-        int right = rows.size() - 1;
-        Comparable rowKey = (Comparable) row.get(clusteringKeyColumn);
-        while (left <= right) {
-            int mid = (left + right) / 2;
-            Hashtable<String, Object> midRow = rows.get(mid);
-            Comparable midKey = (Comparable) midRow.get(clusteringKeyColumn);
+        int index = Util.binarySearch(rows, row);
 
-            int comparison = midKey.compareTo(rowKey);
-            if (comparison <= 0) {
-                left = mid + 1;
-            } else {
-                right = mid - 1;
-            }
-        }
-        int index = left;
-
-        rows.insertElementAt(row, index);
+        rows.insertElementAt(row, index + 1);
 
         if (rows.size() > maxRows) {
             return rows.remove(rows.size() - 1);
@@ -74,7 +60,26 @@ public class Page implements Serializable {
         this.fileName = fileName;
     }
 
-    public boolean isFull() {
-        return rows.size() == maxRows;
+    public void setClusteringKeyColumnName(String clusteringKeyColumnName) {
+        this.clusteringKeyColumnName = clusteringKeyColumnName;
+    }
+
+    public void update(Object clusteringKeyValue, Hashtable<String, Object> newValues) throws
+        DBAppException {
+        Hashtable<String, Object> searchRowValues = new Hashtable<>();
+        searchRowValues.put(clusteringKeyColumnName, clusteringKeyValue);
+
+        Row searchRow = new Row(searchRowValues, clusteringKeyColumnName);
+
+        int index = Util.binarySearch(rows, searchRow);
+        Row requiredRow = rows.get(index);
+
+        if (!requiredRow.getClusteringKeyValue().equals(clusteringKeyValue)) {
+            throw new DBAppException("Row not found");
+        }
+
+        for (String key : newValues.keySet()) {
+            requiredRow.put(key, newValues.get(key));
+        }
     }
 }

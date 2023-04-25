@@ -13,11 +13,11 @@ public class Table implements Serializable {
     private Vector<PageIndexItem> pagesIndex = new Vector<>();
 
     public Table(
-            String tableName,
-            String clusteringKeyColumn,
-            Hashtable<String, String> columnTypes,
-            Hashtable<String, String> columnMin,
-            Hashtable<String, String> columnMax
+        String tableName,
+        String clusteringKeyColumn,
+        Hashtable<String, String> columnTypes,
+        Hashtable<String, String> columnMin,
+        Hashtable<String, String> columnMax
     ) {
         this.tableName = tableName;
         this.clusteringKeyColumn = clusteringKeyColumn;
@@ -34,97 +34,153 @@ public class Table implements Serializable {
     }
 
     public void insert(Hashtable<String, Object> row) throws DBAppException {
-        Comparable rowKey = (Comparable) row.get(clusteringKeyColumn);
-
-        if (pagesIndex.size() == 0) {
-            // Create new page
-            Page page = new Page();
-            String fileName = generatePageName(page);
-            page.setFileName(fileName);
-            page.insert(row);
-            page.save();
-
-            PageIndexItem pageIndexItem = new PageIndexItem();
-            pageIndexItem.pageMin = rowKey;
-            pageIndexItem.fileName = fileName;
-            pagesIndex.add(pageIndexItem);
-            return;
+        if (!validate(row) || row.keySet().size() != columnTypes.keySet().size()) {
+            throw new DBAppException("Invalid row");
         }
+
+        Row currentRow = new Row(row, clusteringKeyColumn);
 
         // Binary search index of pages
-        int left = 0;
-        int right = pagesIndex.size() - 1;
-        while (left <= right) {
-            int mid = (left + right) / 2;
-            PageIndexItem midItem = pagesIndex.get(mid);
-            Comparable midKey = (Comparable) midItem.pageMin;
+        int searchRes = Util.binarySearch(
+            pagesIndex,
+            new PageIndexItem(currentRow.getClusteringKeyValue(), "")
+        );
+        int index = Math.max(searchRes, 0);
 
-            int comparison = midKey.compareTo(rowKey);
-            if (comparison <= 0) {
-                left = mid + 1;
-            } else {
-                right = mid - 1;
-            }
-        }
-        int index = left - 1;
-
-        PageIndexItem pageIndex = pagesIndex.get(index == -1 ? 0 : index);
-
-        Page page = Page.load(pageIndex.fileName);
-        Hashtable<String, Object> returnedRow = page.insert(row);
-        page.save();
-
-        // If returned row is not null, then recursively insert the returned row into table
-        if (returnedRow != null) {
-            if (index == pagesIndex.size() - 1) {
+        while (true) {
+            if (index >= pagesIndex.size()) {
                 Page newPage = new Page();
                 newPage.setFileName(generatePageName(newPage));
-                newPage.insert(returnedRow);
+                newPage.setClusteringKeyColumnName(clusteringKeyColumn);
+                newPage.insert(currentRow);
                 newPage.save();
 
-                PageIndexItem newPageIndexItem = new PageIndexItem();
-                newPageIndexItem.pageMin = returnedRow.get(clusteringKeyColumn);
-                newPageIndexItem.fileName = page.getFileName();
+                PageIndexItem newPageIndexItem =
+                    new PageIndexItem(currentRow.getClusteringKeyValue(), newPage.getFileName());
                 pagesIndex.add(newPageIndexItem);
+                break;
+            }
+
+            PageIndexItem pageIndex = pagesIndex.get(index);
+            Page page = Page.load(pageIndex.fileName);
+            Row returnedRow = page.insert(currentRow);
+            page.save();
+
+            pageIndex.pageMin = page.getRows().get(0).getClusteringKeyValue();
+
+            if (returnedRow != null) {
+                currentRow = returnedRow;
+                index++;
             } else {
-                insert(returnedRow);
+                break;
             }
         }
     }
 
-    public static Table load(String fileName) throws DBAppException {
+    public void update(String clusteringKeyValue, Hashtable<String, Object> newValues) throws
+        DBAppException {
+        if (!validate(newValues) || newValues.containsKey(clusteringKeyColumn)) {
+            throw new DBAppException("Invalid values");
+        }
+
+        String clusteringKeyType = columnTypes.get(clusteringKeyColumn);
+        Object clusterKeyValueObj;
+        switch (clusteringKeyType) {
+            case "java.lang.Integer":
+                clusterKeyValueObj = Integer.parseInt(clusteringKeyValue);
+                break;
+            case "java.lang.Double":
+                clusterKeyValueObj = Double.parseDouble(clusteringKeyValue);
+                break;
+            case "java.util.Date":
+                try {
+                    clusterKeyValueObj = new SimpleDateFormat("yyyy-MM-dd").parse(clusteringKeyValue);
+                } catch (ParseException e) {
+                    throw new DBAppException("Invalid date format");
+                }
+                break;
+            default:
+                clusterKeyValueObj = clusteringKeyValue;
+        }
+
+        int searchRes = Util.binarySearch(
+            pagesIndex,
+            new PageIndexItem(clusterKeyValueObj, "")
+        );
+
+        PageIndexItem pageIndex = pagesIndex.get(searchRes);
+        Page page = Page.load(pageIndex.fileName);
+        page.update(clusterKeyValueObj, newValues);
+        page.save();
+
+    }
+
+    public static Table load(String tableName) throws DBAppException {
         CsvLoader csvLoader = new CsvLoader();
 
         try {
-            Vector<LinkedHashMap<String, String>> metadata = csvLoader.load(fileName);
+            Vector<LinkedHashMap<String, String>> metadata = csvLoader.load("metadata.csv");
+
+            Vector<LinkedHashMap<String, String>> tableColumns = new Vector<>();
 
             for (LinkedHashMap<String, String> row : metadata) {
-                String tableName = row.get("Table Name");
-                String clusteringKeyColumn = row.get("ClusteringKeyColumn");
-                Hashtable<String, String> columnTypes = new Hashtable<>();
-                Hashtable<String, String> columnMin = new Hashtable<>();
-                Hashtable<String, String> columnMax = new Hashtable<>();
+                if (row.get("Table Name").equals(tableName)) {
+                    tableColumns.add(row);
+                }
+            }
+
+
+            Hashtable<String, String> columnTypes = new Hashtable<>();
+            Hashtable<String, String> columnMin = new Hashtable<>();
+            Hashtable<String, String> columnMax = new Hashtable<>();
+            String clusteringKey = "";
+
+            for (LinkedHashMap<String, String> tableColumn : tableColumns) {
+                String columnName = tableColumn.get("Column Name");
+                columnTypes.put(columnName, tableColumn.get("Column Type"));
+                columnMin.put(columnName, tableColumn.get("min"));
+                columnMax.put(columnName, tableColumn.get("max"));
+                if (tableColumn.get("ClusteringKey").equals("True")) {
+                    clusteringKey = columnName;
+                }
+            }
+
+            Table table = new Table(
+                tableName,
+                clusteringKey,
+                columnTypes,
+                columnMin,
+                columnMax
+            );
+
+            String indexFilePath = tableName + ".ser";
+            File file = new File(indexFilePath);
+
+            if (!file.exists()) {
+                return table;
+            }
+
+            try {
+                ObjectInputStream ois = new ObjectInputStream(new FileInputStream(indexFilePath));
+                Vector<PageIndexItem> pageIndex = (Vector<PageIndexItem>) ois.readObject();
+                table.setPagesIndex(pageIndex);
+                return table;
+            } catch (IOException | ClassNotFoundException e) {
+                throw new DBAppException("Error loading table: " + tableName);
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
-        }
-
-        try {
-            ObjectInputStream ois = new ObjectInputStream(new FileInputStream(fileName));
-
-            return (Table) ois.readObject();
-        } catch (IOException | ClassNotFoundException e) {
-            throw new DBAppException("Error loading table: " + fileName);
         }
     }
 
     public void save() throws DBAppException {
         try {
-            String fileName = tableName + ".ser";
-            ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(fileName));
-            oos.writeObject(this);
+            String indexFilePath = tableName + ".ser";
+            ObjectOutputStream ois = new ObjectOutputStream(new FileOutputStream(indexFilePath));
+
+            ois.writeObject(pagesIndex);
         } catch (IOException e) {
-            throw new DBAppException("Error saving table: " + tableName);
+            throw new DBAppException("Error while saving table index" + tableName);
         }
     }
 
@@ -218,5 +274,13 @@ public class Table implements Serializable {
 
     public void setColumnMax(Hashtable<String, String> columnMax) {
         this.columnMax = columnMax;
+    }
+
+    public Vector<PageIndexItem> getPagesIndex() {
+        return pagesIndex;
+    }
+
+    public void setPagesIndex(Vector<PageIndexItem> pagesIndex) {
+        this.pagesIndex = pagesIndex;
     }
 }

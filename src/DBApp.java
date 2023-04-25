@@ -134,6 +134,10 @@ public class DBApp {
         // Find the row to update, same as insertIntoTable
 
         // Update the row
+
+        Table table = Table.load(tableName);
+        table.update(clusteringKeyValue, newValues);
+        table.save();
     }
 
     /**
