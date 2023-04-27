@@ -1,14 +1,25 @@
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.util.*;
 
 public class DBApp {
     private static final String METADATA_FILE_PATH = "metadata.csv";
+    private static final String CONFIG_FILE_PATH = "DBApp.config";
+    private Config config;
 
     /**
      * Executed once when the application starts.
      */
     public void init() {
+        ConfigManager configManager = new ConfigManager(CONFIG_FILE_PATH);
+
+        try {
+            config = configManager.load();
+        } catch (DBAppException e) {
+            System.out.println("Failed to load config file");
+        }
     }
 
     /**
@@ -32,21 +43,17 @@ public class DBApp {
         // TODO: Handle errors (e.g. table already exists, invalid column type, missing min/max values, clustering key not in column types, etc.)
         // TODO: Use dependency injection and strategy pattern to separate metadata file handling from the rest of the code
         CsvLoader csvLoader = new CsvLoader();
-        Vector<LinkedHashMap<String, String>> tableRows = new Vector<>();
+        Vector<Hashtable<String, String>> tableRows = new Vector<>();
 
         File metadataFile = new File(METADATA_FILE_PATH);
         if (metadataFile.exists()) {
-            try {
-                tableRows = csvLoader.load(METADATA_FILE_PATH);
-            } catch (IOException e) {
-                throw new DBAppException("Failed to load metadata file");
-            }
+            tableRows = csvLoader.load(METADATA_FILE_PATH);
         }
 
         Set<String> columnNames = columnTypes.keySet();
 
         for (String columnName : columnNames) {
-            LinkedHashMap<String, String> row = new LinkedHashMap<>();
+            Hashtable<String, String> row = new Hashtable<>();
             row.put("Table Name", tableName);
             row.put("Column Name", columnName);
             row.put("Column Type", columnTypes.get(columnName));
@@ -58,11 +65,7 @@ public class DBApp {
             tableRows.add(row);
         }
 
-        try {
-            csvLoader.save(METADATA_FILE_PATH, tableRows);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        csvLoader.save(METADATA_FILE_PATH, tableRows);
     }
 
     /**
@@ -88,29 +91,12 @@ public class DBApp {
     public void insertIntoTable(
             String tableName, Hashtable<String, Object> values
     ) throws DBAppException {
-        // Load metadata for table
-
-
-        // Validate inputs (table exists, column names exist, column types match, etc.)
-
-
-        /*
-        Find the page to insert into.
-        Data must be sorted by clustering key (primary key).
-        Maybe store the clustering key of the first row in each page and perform binary search to find the page.
-        Or just do a linear search on the pages.
-        */
-
-        /*
-        Once you find a page to insert into, perform a binary search to find where to insert in the page.
-        If the page is full then move the last row to the next page.
-        If the next page is also full repeat until you find a page that is not full,
-        or you reach the last page and it is full. Only in this case, create a new page.
-        */
-
-        Table table = Table.load(tableName);
+        Table table = loadTable(tableName);
         table.insert(values);
         table.save();
+
+        table = null;
+        System.gc();
     }
 
     /**
@@ -135,7 +121,7 @@ public class DBApp {
 
         // Update the row
 
-        Table table = Table.load(tableName);
+        Table table = loadTable(tableName);
         table.update(clusteringKeyValue, newValues);
         table.save();
     }
@@ -152,19 +138,9 @@ public class DBApp {
     public void deleteFromTable(
             String tableName, Hashtable<String, Object> searchValues
     ) throws DBAppException {
-        // Load metadata for table
-
-        // Validate inputs (table exists, column names exist, column types match, etc.)
-
-        /*
-        Since the search values might not include the clustering key, we must load every page, and
-        filter out the rows that match the search values (remove them from the page), and then save
-        the page again.
-        If one page became empty, then delete it entirely.
-        Also maybe if the clustering key is included in the search values, then we can use it to
-        only load the pages that contain the rows that match the search values,
-        I don't think this is required though
-        */
+        Table table = loadTable(tableName);
+        table.delete(searchValues);
+        table.save();
     }
 
     /**
@@ -178,5 +154,60 @@ public class DBApp {
      */
     public Iterator selectFromTable(SQLTerm[] sqlTerms, String[] operators) throws DBAppException {
         return null;
+    }
+
+    public Table loadTable(String tableName) throws DBAppException {
+        CsvLoader csvLoader = new CsvLoader();
+
+        Vector<Hashtable<String, String>> metadata = csvLoader.load(METADATA_FILE_PATH);
+        Vector<Hashtable<String, String>> tableColumns = new Vector<>();
+
+        for (Hashtable<String, String> row : metadata) {
+            if (row.get("Table Name").equals(tableName)) {
+                tableColumns.add(row);
+            }
+        }
+
+
+        Hashtable<String, String> columnTypes = new Hashtable<>();
+        Hashtable<String, String> columnMin = new Hashtable<>();
+        Hashtable<String, String> columnMax = new Hashtable<>();
+        String clusteringKey = "";
+
+        for (Hashtable<String, String> tableColumn : tableColumns) {
+            String columnName = tableColumn.get("Column Name");
+            columnTypes.put(columnName, tableColumn.get("Column Type"));
+            columnMin.put(columnName, tableColumn.get("min"));
+            columnMax.put(columnName, tableColumn.get("max"));
+            if (tableColumn.get("ClusteringKey").equals("True")) {
+                clusteringKey = columnName;
+            }
+        }
+
+        Table table = new Table(
+            tableName,
+            clusteringKey,
+            columnTypes,
+            columnMin,
+            columnMax,
+            config
+        );
+
+        String indexFilePath = tableName + ".ser";
+        File file = new File(indexFilePath);
+
+        if (!file.exists()) {
+            return table;
+        }
+
+        try {
+            ObjectInputStream ois = new ObjectInputStream(new FileInputStream(indexFilePath));
+            Vector<PageIndexItem> pageIndex = (Vector<PageIndexItem>) ois.readObject();
+            table.setPagesIndex(pageIndex);
+            return table;
+        } catch (IOException | ClassNotFoundException e) {
+            throw new DBAppException("Error loading table: " + tableName, e);
+        }
+
     }
 }

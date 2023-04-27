@@ -1,14 +1,17 @@
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-public class Table implements Serializable {
-    private String tableName;
-    private String clusteringKeyColumn;
-    private Hashtable<String, String> columnTypes;
-    private Hashtable<String, String> columnMin;
-    private Hashtable<String, String> columnMax;
+public class Table {
+    private final String tableName;
+    private final String clusteringKeyColumn;
+    private final Hashtable<String, String> columnTypes;
+    private final Hashtable<String, String> columnMin;
+    private final Hashtable<String, String> columnMax;
+    private final Config config;
 
     private Vector<PageIndexItem> pagesIndex = new Vector<>();
 
@@ -17,13 +20,15 @@ public class Table implements Serializable {
         String clusteringKeyColumn,
         Hashtable<String, String> columnTypes,
         Hashtable<String, String> columnMin,
-        Hashtable<String, String> columnMax
+        Hashtable<String, String> columnMax,
+        Config config
     ) {
         this.tableName = tableName;
         this.clusteringKeyColumn = clusteringKeyColumn;
         this.columnTypes = columnTypes;
         this.columnMin = columnMin;
         this.columnMax = columnMax;
+        this.config = config;
     }
 
     public String generatePageName(Page page) {
@@ -49,7 +54,7 @@ public class Table implements Serializable {
 
         while (true) {
             if (index >= pagesIndex.size()) {
-                Page newPage = new Page();
+                Page newPage = new Page(config.getMaximumRowsCountInTablePage());
                 newPage.setFileName(generatePageName(newPage));
                 newPage.setClusteringKeyColumnName(clusteringKeyColumn);
                 newPage.insert(currentRow);
@@ -58,6 +63,8 @@ public class Table implements Serializable {
                 PageIndexItem newPageIndexItem =
                     new PageIndexItem(currentRow.getClusteringKeyValue(), newPage.getFileName());
                 pagesIndex.add(newPageIndexItem);
+                newPage = null;
+                System.gc();
                 break;
             }
 
@@ -75,6 +82,8 @@ public class Table implements Serializable {
                 break;
             }
         }
+
+        System.gc();
     }
 
     public void update(String clusteringKeyValue, Hashtable<String, Object> newValues) throws
@@ -113,64 +122,6 @@ public class Table implements Serializable {
         page.update(clusterKeyValueObj, newValues);
         page.save();
 
-    }
-
-    public static Table load(String tableName) throws DBAppException {
-        CsvLoader csvLoader = new CsvLoader();
-
-        try {
-            Vector<LinkedHashMap<String, String>> metadata = csvLoader.load("metadata.csv");
-
-            Vector<LinkedHashMap<String, String>> tableColumns = new Vector<>();
-
-            for (LinkedHashMap<String, String> row : metadata) {
-                if (row.get("Table Name").equals(tableName)) {
-                    tableColumns.add(row);
-                }
-            }
-
-
-            Hashtable<String, String> columnTypes = new Hashtable<>();
-            Hashtable<String, String> columnMin = new Hashtable<>();
-            Hashtable<String, String> columnMax = new Hashtable<>();
-            String clusteringKey = "";
-
-            for (LinkedHashMap<String, String> tableColumn : tableColumns) {
-                String columnName = tableColumn.get("Column Name");
-                columnTypes.put(columnName, tableColumn.get("Column Type"));
-                columnMin.put(columnName, tableColumn.get("min"));
-                columnMax.put(columnName, tableColumn.get("max"));
-                if (tableColumn.get("ClusteringKey").equals("True")) {
-                    clusteringKey = columnName;
-                }
-            }
-
-            Table table = new Table(
-                tableName,
-                clusteringKey,
-                columnTypes,
-                columnMin,
-                columnMax
-            );
-
-            String indexFilePath = tableName + ".ser";
-            File file = new File(indexFilePath);
-
-            if (!file.exists()) {
-                return table;
-            }
-
-            try {
-                ObjectInputStream ois = new ObjectInputStream(new FileInputStream(indexFilePath));
-                Vector<PageIndexItem> pageIndex = (Vector<PageIndexItem>) ois.readObject();
-                table.setPagesIndex(pageIndex);
-                return table;
-            } catch (IOException | ClassNotFoundException e) {
-                throw new DBAppException("Error loading table: " + tableName);
-            }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
     }
 
     public void save() throws DBAppException {
@@ -236,51 +187,71 @@ public class Table implements Serializable {
         return false;
     }
 
-    public String getTableName() {
-        return tableName;
-    }
-
-    public void setTableName(String tableName) {
-        this.tableName = tableName;
-    }
-
-    public String getClusteringKeyColumn() {
-        return clusteringKeyColumn;
-    }
-
-    public void setClusteringKeyColumn(String clusteringKeyColumn) {
-        this.clusteringKeyColumn = clusteringKeyColumn;
-    }
-
-    public Hashtable<String, String> getColumnTypes() {
-        return columnTypes;
-    }
-
-    public void setColumnTypes(Hashtable<String, String> columnTypes) {
-        this.columnTypes = columnTypes;
-    }
-
-    public Hashtable<String, String> getColumnMin() {
-        return columnMin;
-    }
-
-    public void setColumnMin(Hashtable<String, String> columnMin) {
-        this.columnMin = columnMin;
-    }
-
-    public Hashtable<String, String> getColumnMax() {
-        return columnMax;
-    }
-
-    public void setColumnMax(Hashtable<String, String> columnMax) {
-        this.columnMax = columnMax;
-    }
-
     public Vector<PageIndexItem> getPagesIndex() {
         return pagesIndex;
     }
 
     public void setPagesIndex(Vector<PageIndexItem> pagesIndex) {
         this.pagesIndex = pagesIndex;
+    }
+
+    public void delete(Hashtable<String, Object> searchValues) throws DBAppException {
+        if (!validate(searchValues)) {
+            throw new DBAppException("Invalid search values");
+        }
+
+        if (searchValues.containsKey(clusteringKeyColumn)) {
+            deleteUsingClusteringKey(searchValues);
+        } else {
+            linearDelete(searchValues);
+        }
+    }
+
+    private void linearDelete(Hashtable<String, Object> searchValues) throws DBAppException {
+        for (int i = 0; i < pagesIndex.size(); i++) {
+            PageIndexItem pageIndexItem = pagesIndex.get(i);
+            Page page = Page.load(pageIndexItem.fileName);
+            page.deleteLinearSearch(searchValues);
+
+            if (deletePageOrSave(i, page)) {
+                i--;
+            }
+        }
+    }
+
+    private void deleteUsingClusteringKey(Hashtable<String, Object> searchValues) throws
+        DBAppException {
+        PageIndexItem searchPageIndex = new PageIndexItem(searchValues.get(clusteringKeyColumn), "");
+        int pageIndex = Util.binarySearch(pagesIndex, searchPageIndex);
+
+        if (pageIndex < 0) {
+            return;
+        }
+
+        PageIndexItem pageIndexItem = pagesIndex.get(pageIndex);
+        Page page = Page.load(pageIndexItem.fileName);
+        page.deleteBinarySearch(searchValues);
+
+        deletePageOrSave(pageIndex, page);
+    }
+
+    private boolean deletePageOrSave(int idx, Page page) throws
+        DBAppException {
+        PageIndexItem pageIndexItem = pagesIndex.get(idx);
+
+        if (page.getRows().size() == 0) {
+            pagesIndex.remove(idx);
+            try {
+                Files.deleteIfExists(Paths.get(pageIndexItem.fileName));
+            } catch (IOException e) {
+                throw new DBAppException("Error deleting page file: " + pageIndexItem.fileName);
+            }
+            return true;
+        } else {
+            pageIndexItem.pageMin = page.getRows().get(0).get(clusteringKeyColumn);
+            page.save();
+        }
+
+        return false;
     }
 }

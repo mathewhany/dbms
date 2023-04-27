@@ -3,10 +3,14 @@ import java.util.Hashtable;
 import java.util.Vector;
 
 public class Page implements Serializable {
-    private Vector<Row> rows = new Vector<>();
+    private final Vector<Row> rows = new Vector<>();
     private String fileName;
     private String clusteringKeyColumnName;
-    private int maxRows = 2;
+    private final int maxRows;
+
+    public Page(int maxRows) {
+        this.maxRows = maxRows;
+    }
 
     public static Page load(String fileName) throws DBAppException {
         try {
@@ -35,13 +39,17 @@ public class Page implements Serializable {
         return rows;
     }
 
-    public Row insert(Row row) {
+    public Row insert(Row row) throws DBAppException {
         if (rows.size() == 0) {
             rows.add(row);
             return null;
         }
 
         int index = Util.binarySearch(rows, row);
+
+        if (index >= 0 && rows.get(index).getClusteringKeyValue().equals(row.getClusteringKeyValue())) {
+            throw new DBAppException("Duplicate key");
+        }
 
         rows.insertElementAt(row, index + 1);
 
@@ -80,6 +88,38 @@ public class Page implements Serializable {
 
         for (String key : newValues.keySet()) {
             requiredRow.put(key, newValues.get(key));
+        }
+    }
+
+    public void deleteBinarySearch(Hashtable<String, Object> searchValues) {
+        Row searchRow = new Row(searchValues, clusteringKeyColumnName);
+
+        int index = Util.binarySearch(rows, searchRow);
+
+        if (index < 0) {
+            return;
+        }
+
+        Row requiredRow = rows.get(index);
+
+        if (!requiredRow.matches(searchValues)) return;
+
+        rows.remove(index);
+    }
+
+    public void deleteLinearSearch(Hashtable<String, Object> searchValues) {
+        Vector<Integer> matchingIndices = new Vector<>();
+
+        for (int i = 0; i < rows.size(); i++) {
+            Row requiredRow = rows.get(i);
+
+            if (requiredRow.matches(searchValues)) {
+                matchingIndices.add(i);
+            }
+        }
+
+        for (int i = matchingIndices.size() - 1; i >= 0; i--) {
+            rows.remove(matchingIndices.get(i).intValue());
         }
     }
 }

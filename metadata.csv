@@ -1,9 +1,0 @@
-Table Name,Column Name,Column Type,ClusteringKey,IndexName,IndexType,min,max
-posts,body,java.lang.String,False,null,null,null,null
-posts,date,java.util.Date,False,null,null,null,null
-posts,author,java.lang.String,False,null,null,null,null
-posts,title,java.lang.String,False,null,null,null,null
-posts,id,java.lang.Integer,True,null,null,0,1000000
-Student,gpa,java.lang.Double,False,null,null,0.0,4.0
-Student,name,java.lang.String,False,null,null,A,Z
-Student,id,java.lang.Integer,True,null,null,0,100

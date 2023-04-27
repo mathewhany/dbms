@@ -2,8 +2,8 @@ import java.io.Serializable;
 import java.util.Hashtable;
 
 public class Row implements Comparable<Row>, Serializable {
-    private Hashtable<String, Object> values;
-    private String clusteringKeyColumnName;
+    private final Hashtable<String, Object> values;
+    private final String clusteringKeyColumnName;
 
     public Row(Hashtable<String, Object> values, String clusteringKey) {
         this.values = values;
@@ -31,5 +31,15 @@ public class Row implements Comparable<Row>, Serializable {
         Comparable otherKey = (Comparable) otherRow.getClusteringKeyValue();
 
         return thisKey.compareTo(otherKey);
+    }
+
+    public boolean matches(Hashtable<String, Object> searchValues) {
+        for (String key : searchValues.keySet()) {
+            if (!this.get(key).equals(searchValues.get(key))) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }
