@@ -1,3 +1,5 @@
+package dbms.config;
+
 public class Config {
     private final int maximumRowsCountInTablePage;
     private final int maximumEntriesInOctreeNode;

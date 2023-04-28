@@ -1,3 +1,5 @@
+package dbms;
+
 public class SQLTerm {
     public String _strTableName;
     public String _strColumnName;

@@ -1,11 +1,15 @@
+package dbms.config;
+
+import dbms.DBAppException;
+
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Properties;
 
-public class ConfigManager {
+public class PropertiesConfigManager implements ConfigManager {
     private final String fileName;
 
-    public ConfigManager(String fileName) {
+    public PropertiesConfigManager(String fileName) {
         this.fileName = fileName;
     }
 

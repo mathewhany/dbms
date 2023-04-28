@@ -1,19 +1,27 @@
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Collections;
-import java.util.Date;
+package dbms.util;
+
+import dbms.datatype.DataType;
+
 import java.util.Vector;
+import java.util.function.Function;
 
 public class Util {
-    public static <T extends Comparable<T>> int binarySearch(Vector<T> vector, T searchKey) {
+    public static <T, K> int binarySearch(
+        Vector<T> vector,
+        K searchKey,
+        Function<T, K> keyExtractor,
+        DataType dataType
+    ) {
         int left = 0;
         int right = vector.size() - 1;
         int result = -1;
+
         while (left <= right) {
             int mid = (left + right) / 2;
             T midItem = vector.get(mid);
+            K midKey = keyExtractor.apply(midItem);
 
-            int comparison = midItem.compareTo(searchKey);
+            int comparison = dataType.compare(midKey, searchKey);
             if (comparison <= 0) {
                 result = mid;
                 left = mid + 1;

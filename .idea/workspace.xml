@@ -4,19 +4,33 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="86b23039-3874-4a2b-bcf9-322efec03290" name="Changes" comment="Dev">
-      <change afterPath="$PROJECT_DIR$/DBApp.config" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/Config.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/ConfigManager.java" afterDir="false" />
+    <list default="true" id="86b23039-3874-4a2b-bcf9-322efec03290" name="Changes" comment="Create interfaces for TableManager, PageManager, PagesIndexManager, ConfigManager, DataType.">
+      <change afterPath="$PROJECT_DIR$/src/dbms/config/ConfigManager.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/dbms/datatype/DataType.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/dbms/datatype/DateDataType.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/dbms/datatype/DoubleDataType.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/dbms/datatype/IntegerDataType.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/dbms/datatype/StringDataType.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/dbms/pages/PageIndexItem.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/dbms/pages/PageManager.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/dbms/pages/PagesIndexManager.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/dbms/pages/SerializedPageManager.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/dbms/pages/SerializedPagesIndexManager.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/dbms/tables/CsvTableManager.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/dbms/tables/TableManager.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/metadata.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/CsvLoader.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/CsvLoader.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/DBApp.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/DBApp.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/DBAppException.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/DBAppException.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Page.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Page.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Row.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Row.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Table.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Table.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Test.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Test.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Config.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/dbms/config/Config.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/ConfigManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/dbms/config/PropertiesConfigManager.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/CsvLoader.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/dbms/util/CsvLoader.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/DBApp.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/dbms/DBApp.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/DBAppException.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/dbms/DBAppException.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Page.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/dbms/pages/Page.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/PageIndexItem.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Row.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/dbms/pages/Row.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/SQLTerm.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/dbms/SQLTerm.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Table.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/dbms/tables/Table.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Test.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/dbms/Test.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Util.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/dbms/util/Util.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -26,6 +40,7 @@
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
+        <option value="Interface" />
         <option value="Class" />
       </list>
     </option>
@@ -61,24 +76,27 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "WebServerToolWindowFactoryState": "false",
-    "codeWithMe.voiceChat.enabledByDefault": "false",
-    "git-widget-placeholder": "main",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "settings.editor.selected.configurable": "profiler.jvm",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
+    &quot;codeWithMe.voiceChat.enabledByDefault&quot;: &quot;false&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;profiler.jvm&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CreateClassDialog.RecentsKey">
+      <recent name="dbms.datatype" />
+      <recent name="dbms" />
+      <recent name="dbms.pages" />
       <recent name="" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
@@ -87,7 +105,7 @@
   </component>
   <component name="RunManager">
     <configuration name="Test" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
-      <option name="MAIN_CLASS_NAME" value="Test" />
+      <option name="MAIN_CLASS_NAME" value="dbms.Test" />
       <module name="dbms" />
       <method v="2">
         <option name="Make" enabled="true" />
@@ -116,8 +134,24 @@
       <workItem from="1682182218380" duration="7959000" />
       <workItem from="1682248282615" duration="18340000" />
       <workItem from="1682331914923" duration="355000" />
-      <workItem from="1682614929611" duration="6736000" />
+      <workItem from="1682614929611" duration="7075000" />
+      <workItem from="1682703637959" duration="13915000" />
     </task>
+    <task id="LOCAL-00001" summary="Finish deleteFromTable">
+      <created>1682623578564</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1682623578564</updated>
+    </task>
+    <task id="LOCAL-00002" summary="Finish deleteFromTable">
+      <created>1682623863330</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1682623863330</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -137,18 +171,9 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Refactoring" />
     <MESSAGE value="Dev" />
-    <option name="LAST_COMMIT_MESSAGE" value="Dev" />
-  </component>
-  <component name="XDebuggerManager">
-    <breakpoint-manager>
-      <breakpoints>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/Test.java</url>
-          <line>37</line>
-          <option name="timeStamp" value="3" />
-        </line-breakpoint>
-      </breakpoints>
-    </breakpoint-manager>
+    <MESSAGE value="Finish deleteFromTable" />
+    <MESSAGE value="Create interfaces for TableManager, PageManager, PagesIndexManager, ConfigManager, DataType." />
+    <option name="LAST_COMMIT_MESSAGE" value="Create interfaces for TableManager, PageManager, PagesIndexManager, ConfigManager, DataType." />
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />

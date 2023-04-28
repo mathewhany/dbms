@@ -1,7 +1,9 @@
+package dbms.pages;
+
 import java.io.Serializable;
 import java.util.Hashtable;
 
-public class Row implements Comparable<Row>, Serializable {
+public class Row implements Serializable {
     private final Hashtable<String, Object> values;
     private final String clusteringKeyColumnName;
 
@@ -23,14 +25,6 @@ public class Row implements Comparable<Row>, Serializable {
     }
     public void put(String columnName, Object columnValue) {
         values.put(columnName, columnValue);
-    }
-
-    @Override
-    public int compareTo(Row otherRow) {
-        Comparable thisKey = (Comparable) getClusteringKeyValue();
-        Comparable otherKey = (Comparable) otherRow.getClusteringKeyValue();
-
-        return thisKey.compareTo(otherKey);
     }
 
     public boolean matches(Hashtable<String, Object> searchValues) {

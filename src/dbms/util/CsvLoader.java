@@ -1,3 +1,7 @@
+package dbms.util;
+
+import dbms.DBAppException;
+
 import java.io.*;
 import java.util.Hashtable;
 import java.util.Vector;
@@ -12,7 +16,7 @@ public class CsvLoader {
      * @param rows     A vector of hash tables, each hash table represents a row in the CSV file.
      * @throws IOException
      */
-    public void save(String filePath, Vector<Hashtable<String, String>> rows) throws
+    public static void save(String filePath, Vector<Hashtable<String, String>> rows) throws
         DBAppException {
         Hashtable<String, Integer> headers = getHeaders(filePath);
 
@@ -44,7 +48,7 @@ public class CsvLoader {
      * @return A vector of hash tables, each hash table represents a row in the CSV file.
      * @throws IOException
      */
-    public Vector<Hashtable<String, String>> load(String filePath) throws DBAppException {
+    public static Vector<Hashtable<String, String>> load(String filePath) throws DBAppException {
         Vector<Hashtable<String, String>> rows = new Vector<>();
 
         try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
@@ -69,7 +73,7 @@ public class CsvLoader {
         return rows;
     }
 
-    private Hashtable<String, Integer> getHeaders(String filePath) throws DBAppException {
+    private static Hashtable<String, Integer> getHeaders(String filePath) throws DBAppException {
         Hashtable<String, Integer> headers = new Hashtable<>();
 
         if (!new File(filePath).exists()) {

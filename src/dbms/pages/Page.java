@@ -1,3 +1,9 @@
+package dbms.pages;
+
+import dbms.DBAppException;
+import dbms.util.Util;
+import dbms.datatype.DataType;
+
 import java.io.*;
 import java.util.Hashtable;
 import java.util.Vector;
@@ -7,32 +13,16 @@ public class Page implements Serializable {
     private String fileName;
     private String clusteringKeyColumnName;
     private final int maxRows;
+    private final Hashtable<String, String> columnTypes;
+    private final Hashtable<String, DataType> dataTypes;
 
-    public Page(int maxRows) {
+    public Page(
+        int maxRows, Hashtable<String, String> columnTypes, Hashtable<String, DataType> dataTypes, String clusteringKeyColumnName
+    ) {
         this.maxRows = maxRows;
-    }
-
-    public static Page load(String fileName) throws DBAppException {
-        try {
-            ObjectInputStream ois = new ObjectInputStream(new FileInputStream(fileName));
-
-            return (Page) ois.readObject();
-        } catch (IOException e) {
-            throw new DBAppException("Page file not found: " + fileName);
-        } catch (ClassNotFoundException e) {
-            throw new DBAppException("Page file couldn't be loaded : " + fileName);
-        }
-    }
-
-    public void save() throws DBAppException {
-        try {
-            ObjectOutputStream ois = new ObjectOutputStream(new FileOutputStream(fileName));
-
-            ois.writeObject(this);
-        } catch (IOException e) {
-            e.printStackTrace();
-            throw new DBAppException("Saving page failed: " + fileName);
-        }
+        this.columnTypes = columnTypes;
+        this.dataTypes = dataTypes;
+        this.clusteringKeyColumnName = clusteringKeyColumnName;
     }
 
     public Vector<Row> getRows() {
@@ -45,9 +35,15 @@ public class Page implements Serializable {
             return null;
         }
 
-        int index = Util.binarySearch(rows, row);
+        int index = Util.binarySearch(
+            rows,
+            row.getClusteringKeyValue(),
+            Row::getClusteringKeyValue,
+            dataTypes.get(columnTypes.get(clusteringKeyColumnName))
+        );
 
-        if (index >= 0 && rows.get(index).getClusteringKeyValue().equals(row.getClusteringKeyValue())) {
+        if (index >= 0 &&
+            rows.get(index).getClusteringKeyValue().equals(row.getClusteringKeyValue())) {
             throw new DBAppException("Duplicate key");
         }
 
@@ -68,18 +64,14 @@ public class Page implements Serializable {
         this.fileName = fileName;
     }
 
-    public void setClusteringKeyColumnName(String clusteringKeyColumnName) {
-        this.clusteringKeyColumnName = clusteringKeyColumnName;
-    }
-
     public void update(Object clusteringKeyValue, Hashtable<String, Object> newValues) throws
         DBAppException {
-        Hashtable<String, Object> searchRowValues = new Hashtable<>();
-        searchRowValues.put(clusteringKeyColumnName, clusteringKeyValue);
-
-        Row searchRow = new Row(searchRowValues, clusteringKeyColumnName);
-
-        int index = Util.binarySearch(rows, searchRow);
+        int index = Util.binarySearch(
+            rows,
+            clusteringKeyValue,
+            Row::getClusteringKeyValue,
+            dataTypes.get(columnTypes.get(clusteringKeyColumnName))
+        );
         Row requiredRow = rows.get(index);
 
         if (!requiredRow.getClusteringKeyValue().equals(clusteringKeyValue)) {
@@ -92,9 +84,13 @@ public class Page implements Serializable {
     }
 
     public void deleteBinarySearch(Hashtable<String, Object> searchValues) {
-        Row searchRow = new Row(searchValues, clusteringKeyColumnName);
-
-        int index = Util.binarySearch(rows, searchRow);
+        Object clusteringKeyValue = searchValues.get(clusteringKeyColumnName);
+        int index = Util.binarySearch(
+            rows,
+            clusteringKeyValue,
+            Row::getClusteringKeyValue,
+            dataTypes.get(columnTypes.get(clusteringKeyColumnName))
+        );
 
         if (index < 0) {
             return;
