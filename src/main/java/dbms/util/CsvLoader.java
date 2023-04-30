@@ -3,6 +3,8 @@ package dbms.util;
 import dbms.DBAppException;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Hashtable;
 import java.util.Vector;
 
@@ -76,21 +78,25 @@ public class CsvLoader {
     private static Hashtable<String, Integer> getHeaders(String filePath) throws DBAppException {
         Hashtable<String, Integer> headers = new Hashtable<>();
 
-        if (!new File(filePath).exists()) {
-            headers.put("Table Name", 0);
-            headers.put("Column Name", 1);
-            headers.put("Column Type", 2);
-            headers.put("ClusteringKey", 3);
-            headers.put("IndexName", 4);
-            headers.put("IndexType", 5);
-            headers.put("min", 6);
-            headers.put("max", 7);
+        if (!Files.exists(Paths.get(filePath))) {
+            try (BufferedWriter bw = new BufferedWriter(new FileWriter(filePath))) {
+                bw.write("");
+            } catch (IOException e) {
+                throw new DBAppException("Failed to create metadata file");
+            }
+        }
 
-            return headers;
+        try(BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
+            if (reader.readLine() == null) {
+                writeDefaultHeaders(filePath);
+            }
+        } catch (IOException e) {
+            throw new DBAppException("Failed to load metadata file");
         }
 
         try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
             String firstLine = reader.readLine();
+
             String[] fields = firstLine.split(DELIMITER);
 
             for (int i = 0; i < fields.length; i++) {
@@ -101,5 +107,24 @@ public class CsvLoader {
         }
 
         return headers;
+    }
+
+    private static void writeDefaultHeaders(String filePath) {
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(filePath))) {
+            bw.write(String.join(
+                DELIMITER,
+                "Table Name",
+                "Column Name",
+                "Column Type",
+                "ClusteringKey",
+                "Index Name",
+                "Index Type",
+                "min",
+                "max"
+            ));
+            bw.newLine();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

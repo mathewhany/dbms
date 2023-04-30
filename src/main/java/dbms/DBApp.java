@@ -15,8 +15,11 @@ import java.util.Iterator;
 import java.util.Vector;
 
 public class DBApp {
-    private static final String METADATA_FILE_PATH = "metadata.csv";
-    private static final String CONFIG_FILE_PATH = "DBApp.config";
+    private static final String METADATA_FILE_PATH = "src/main/resources/metadata.csv";
+    private static final String CONFIG_FILE_PATH = "src/main/resources/DBApp.config";
+    private static final String TABLES_DIR = "src/main/resources/Data/tables/";
+    private static final String PAGES_DIR = "src/main/resources/Data/pages/";
+
     private Config config;
     private CsvTableManager tableManager;
     private SerializedPageManager pageManager;
@@ -32,7 +35,6 @@ public class DBApp {
         try {
             config = configManager.load();
         } catch (DBAppException e) {
-            e.printStackTrace();
             System.out.println("Failed to load config file");
         }
 
@@ -42,9 +44,23 @@ public class DBApp {
         dataTypes.put("java.lang.String", new StringDataType());
         dataTypes.put("java.util.Date", new DateDataType());
 
-        pageManager = new SerializedPageManager();
-        tableManager = new CsvTableManager(METADATA_FILE_PATH, config, pageManager, dataTypes);
-        pagesIndexManager = new SerializedPagesIndexManager();
+        try {
+            pageManager = new SerializedPageManager(PAGES_DIR);
+        } catch (DBAppException e) {
+            System.out.println("Failed to load page manager");
+        }
+
+        try {
+            tableManager = new CsvTableManager(METADATA_FILE_PATH, config, pageManager, dataTypes);
+        } catch (DBAppException e) {
+            System.out.println("Failed to load table manager");
+        }
+
+        try {
+            pagesIndexManager = new SerializedPagesIndexManager(TABLES_DIR);
+        } catch (DBAppException e) {
+            System.out.println("Failed to load pages index manager");
+        }
     }
 
     /**
@@ -125,6 +141,9 @@ public class DBApp {
         Table table = loadTable(tableName);
         table.update(clusteringKeyValue, newValues);
         pagesIndexManager.savePagesIndex(table);
+
+        table = null;
+        System.gc();
     }
 
     /**
@@ -142,6 +161,9 @@ public class DBApp {
         Table table = loadTable(tableName);
         table.delete(searchValues);
         pagesIndexManager.savePagesIndex(table);
+
+        table = null;
+        System.gc();
     }
 
     /**

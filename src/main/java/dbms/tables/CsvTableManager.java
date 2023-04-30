@@ -6,7 +6,10 @@ import dbms.DBAppException;
 import dbms.datatype.DataType;
 import dbms.pages.PageManager;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.Hashtable;
 import java.util.Set;
 import java.util.Vector;
@@ -35,7 +38,7 @@ public class CsvTableManager implements TableManager {
         Config config,
         PageManager pageManager,
         Hashtable<String, DataType> dataTypes
-    ) {
+    ) throws DBAppException {
         this.metadataFilePath = metadataFilePath;
         this.config = config;
         this.pageManager = pageManager;

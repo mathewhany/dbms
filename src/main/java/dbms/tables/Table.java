@@ -14,7 +14,6 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Hashtable;
 import java.util.Set;
-import java.util.UUID;
 import java.util.Vector;
 
 public class Table {
@@ -82,17 +81,27 @@ public class Table {
         }
     }
 
-    public String generatePageName(Page page) {
-        // Generate random hash for page name
-        String name = UUID.randomUUID().toString();
+    public String generatePageId() {
+        if (pagesIndex.size() == 0) {
+            return tableName + "_0";
+        }
 
-        return name + ".ser";
+        PageIndexItem lastPageIndexItem = pagesIndex.lastElement();
+        int lastPageIndex = Integer.parseInt(lastPageIndexItem.pageId.split("_")[1]);
+
+        return tableName + "_" + (lastPageIndex + 1);
     }
 
     public void insert(Hashtable<String, Object> row) throws DBAppException {
-        if (!validate(row) || row.keySet().size() != columnTypes.keySet().size()) {
-            throw new DBAppException("Invalid row");
+        validate(row);
+        if (!row.containsKey(clusteringKeyColumn)) {
+            throw new DBAppException("Cannot insert row without clustering key");
         }
+
+        // https://piazza.com/class/lel8rsvwc4e7j6/post/32
+//        if (row.size() != columnTypes.size()) {
+//            throw new DBAppException("Row size doesn't match table size");
+//        }
 
         Row currentRow = new Row(row, clusteringKeyColumn);
 
@@ -107,31 +116,32 @@ public class Table {
 
         while (true) {
             if (index >= pagesIndex.size()) {
-                Page newPage =
-                    new Page(
-                        config.getMaximumRowsCountInTablePage(),
-                        columnTypes,
-                        dataTypes,
-                        clusteringKeyColumn
-                    );
-                newPage.setFileName(generatePageName(newPage));
+                Page newPage = new Page(
+                    config.getMaximumRowsCountInTablePage(),
+                    columnTypes,
+                    dataTypes,
+                    clusteringKeyColumn
+                );
+                newPage.setPageId(generatePageId());
                 newPage.insert(currentRow);
                 pageManager.savePage(newPage);
 
                 PageIndexItem newPageIndexItem =
-                    new PageIndexItem(currentRow.getClusteringKeyValue(), newPage.getFileName());
+                    new PageIndexItem(currentRow.getClusteringKeyValue(), newPage.getPageId());
                 pagesIndex.add(newPageIndexItem);
+
                 newPage = null;
                 System.gc();
                 break;
             }
 
             PageIndexItem pageIndex = pagesIndex.get(index);
-            Page page = pageManager.loadPage(pageIndex.fileName);
+            Page page = pageManager.loadPage(pageIndex.pageId);
             Row returnedRow = page.insert(currentRow);
             pageManager.savePage(page);
-
             pageIndex.pageMin = page.getRows().get(0).getClusteringKeyValue();
+            page = null;
+            System.gc();
 
             if (returnedRow != null) {
                 currentRow = returnedRow;
@@ -146,35 +156,41 @@ public class Table {
 
     public void update(String clusteringKeyValue, Hashtable<String, Object> newValues) throws
         DBAppException {
-        if (!validate(newValues) || newValues.containsKey(clusteringKeyColumn)) {
-            throw new DBAppException("Invalid values");
+        validate(newValues);
+        if (newValues.containsKey(clusteringKeyColumn)) {
+            throw new DBAppException("Cannot update clustering key column");
         }
 
         String clusteringKeyType = columnTypes.get(clusteringKeyColumn);
         DataType clusteringKeyDataType = dataTypes.get(clusteringKeyType);
         Object clusterKeyValueObj = clusteringKeyDataType.parse(clusteringKeyValue);
 
-        int searchRes =
-            Util.binarySearch(
-                pagesIndex,
-                clusterKeyValueObj,
-                (pageIndex) -> pageIndex.pageMin,
-                clusteringKeyDataType
-            );
+        int searchRes = Util.binarySearch(
+            pagesIndex,
+            clusterKeyValueObj,
+            (pageIndex) -> pageIndex.pageMin,
+            clusteringKeyDataType
+        );
+
+        if (searchRes < 0) {
+            throw new DBAppException(
+                "Row with clustering key " + clusteringKeyValue + " not found");
+        }
 
         PageIndexItem pageIndex = pagesIndex.get(searchRes);
-        Page page = pageManager.loadPage(pageIndex.fileName);
+        Page page = pageManager.loadPage(pageIndex.pageId);
         page.update(clusterKeyValueObj, newValues);
         pageManager.savePage(page);
-
+        page = null;
+        System.gc();
     }
 
-    public boolean validate(Hashtable<String, Object> row) {
+    public void validate(Hashtable<String, Object> row) throws DBAppException {
         for (String columnName : row.keySet()) {
             Object value = row.get(columnName);
 
             if (!columnTypes.containsKey(columnName)) {
-                return false;
+                throw new DBAppException("Column " + columnName + " not found");
             }
 
             String expectedType = columnTypes.get(columnName);
@@ -183,18 +199,19 @@ public class Table {
             String actualType = value.getClass().getName();
 
             if (!expectedType.equals(actualType)) {
-                return false;
+                throw new DBAppException(
+                    "Expected type " + expectedType + " for column '" + columnName +
+                    "' but found " + actualType);
             }
 
             Object min = columnMin.get(columnName);
             Object max = columnMax.get(columnName);
 
             if (dataType.compare(value, min) < 0 || dataType.compare(value, max) > 0) {
-                return false;
+                throw new DBAppException(
+                    "Value for column '" + columnName + "' must be between " + min + " and " + max);
             }
         }
-
-        return true;
     }
 
     public Vector<PageIndexItem> getPagesIndex() {
@@ -206,9 +223,7 @@ public class Table {
     }
 
     public void delete(Hashtable<String, Object> searchValues) throws DBAppException {
-        if (!validate(searchValues)) {
-            throw new DBAppException("Invalid search values");
-        }
+        validate(searchValues);
 
         if (searchValues.containsKey(clusteringKeyColumn)) {
             deleteUsingClusteringKey(searchValues);
@@ -220,12 +235,15 @@ public class Table {
     private void linearDelete(Hashtable<String, Object> searchValues) throws DBAppException {
         for (int i = 0; i < pagesIndex.size(); i++) {
             PageIndexItem pageIndexItem = pagesIndex.get(i);
-            Page page = pageManager.loadPage(pageIndexItem.fileName);
+            Page page = pageManager.loadPage(pageIndexItem.pageId);
             page.deleteLinearSearch(searchValues);
 
             if (deletePageOrSave(i, page)) {
                 i--;
             }
+
+            page = null;
+            System.gc();
         }
     }
 
@@ -243,10 +261,13 @@ public class Table {
         }
 
         PageIndexItem pageIndexItem = pagesIndex.get(pageIndex);
-        Page page = pageManager.loadPage(pageIndexItem.fileName);
+        Page page = pageManager.loadPage(pageIndexItem.pageId);
         page.deleteBinarySearch(searchValues);
 
         deletePageOrSave(pageIndex, page);
+
+        page = null;
+        System.gc();
     }
 
     private boolean deletePageOrSave(int idx, Page page) throws DBAppException {
@@ -254,11 +275,7 @@ public class Table {
 
         if (page.getRows().size() == 0) {
             pagesIndex.remove(idx);
-            try {
-                Files.deleteIfExists(Paths.get(pageIndexItem.fileName));
-            } catch (IOException e) {
-                throw new DBAppException("Error deleting page file: " + pageIndexItem.fileName);
-            }
+            pageManager.deletePage(pageIndexItem.pageId);
             return true;
         } else {
             pageIndexItem.pageMin = page.getRows().get(0).get(clusteringKeyColumn);

@@ -4,10 +4,10 @@ import java.io.Serializable;
 
 public class PageIndexItem implements Serializable {
     public Object pageMin;
-    public String fileName;
+    public String pageId;
 
-    public PageIndexItem(Object pageMin, String fileName) {
+    public PageIndexItem(Object pageMin, String pageId) {
         this.pageMin = pageMin;
-        this.fileName = fileName;
+        this.pageId = pageId;
     }
 }

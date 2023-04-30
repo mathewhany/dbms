@@ -10,14 +10,17 @@ import java.util.Vector;
 
 public class Page implements Serializable {
     private final Vector<Row> rows = new Vector<>();
-    private String fileName;
+    private String pageId;
     private String clusteringKeyColumnName;
     private final int maxRows;
     private final Hashtable<String, String> columnTypes;
     private final Hashtable<String, DataType> dataTypes;
 
     public Page(
-        int maxRows, Hashtable<String, String> columnTypes, Hashtable<String, DataType> dataTypes, String clusteringKeyColumnName
+        int maxRows,
+        Hashtable<String, String> columnTypes,
+        Hashtable<String, DataType> dataTypes,
+        String clusteringKeyColumnName
     ) {
         this.maxRows = maxRows;
         this.columnTypes = columnTypes;
@@ -42,9 +45,16 @@ public class Page implements Serializable {
             dataTypes.get(columnTypes.get(clusteringKeyColumnName))
         );
 
+        DataType clusteringKeyType = dataTypes.get(columnTypes.get(clusteringKeyColumnName));
+
         if (index >= 0 &&
-            rows.get(index).getClusteringKeyValue().equals(row.getClusteringKeyValue())) {
-            throw new DBAppException("Duplicate key");
+            clusteringKeyType.compare(
+                rows.get(index).getClusteringKeyValue(),
+                row.getClusteringKeyValue()
+            ) == 0) {
+            throw new DBAppException(
+                "Row with same clustering key (" + row.getClusteringKeyValue() +
+                ") already exists");
         }
 
         rows.insertElementAt(row, index + 1);
@@ -56,25 +66,29 @@ public class Page implements Serializable {
         return null;
     }
 
-    public String getFileName() {
-        return fileName;
+    public String getPageId() {
+        return pageId;
     }
 
-    public void setFileName(String fileName) {
-        this.fileName = fileName;
+    public void setPageId(String pageId) {
+        this.pageId = pageId;
     }
 
     public void update(Object clusteringKeyValue, Hashtable<String, Object> newValues) throws
         DBAppException {
+
+        DataType clusteringKeyType = dataTypes.get(columnTypes.get(clusteringKeyColumnName));
+
         int index = Util.binarySearch(
             rows,
             clusteringKeyValue,
             Row::getClusteringKeyValue,
-            dataTypes.get(columnTypes.get(clusteringKeyColumnName))
+            clusteringKeyType
         );
         Row requiredRow = rows.get(index);
 
-        if (!requiredRow.getClusteringKeyValue().equals(clusteringKeyValue)) {
+        if (clusteringKeyType.compare(requiredRow.getClusteringKeyValue(), clusteringKeyValue) !=
+            0) {
             throw new DBAppException("Row not found");
         }
 
@@ -98,7 +112,7 @@ public class Page implements Serializable {
 
         Row requiredRow = rows.get(index);
 
-        if (!requiredRow.matches(searchValues)) return;
+        if (!matches(requiredRow, searchValues)) return;
 
         rows.remove(index);
     }
@@ -109,7 +123,7 @@ public class Page implements Serializable {
         for (int i = 0; i < rows.size(); i++) {
             Row requiredRow = rows.get(i);
 
-            if (requiredRow.matches(searchValues)) {
+            if (matches(requiredRow, searchValues)) {
                 matchingIndices.add(i);
             }
         }
@@ -117,5 +131,20 @@ public class Page implements Serializable {
         for (int i = matchingIndices.size() - 1; i >= 0; i--) {
             rows.remove(matchingIndices.get(i).intValue());
         }
+    }
+
+    private boolean matches(Row row, Hashtable<String, Object> searchValues) {
+        Hashtable<String, Object> rowValues = row.getValues();
+
+        for (String key : searchValues.keySet()) {
+            DataType dataType = dataTypes.get(columnTypes.get(key));
+            Object value = rowValues.get(key);
+
+            if (value == null || dataType.compare(value, searchValues.get(key)) != 0) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }

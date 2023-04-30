@@ -26,14 +26,4 @@ public class Row implements Serializable {
     public void put(String columnName, Object columnValue) {
         values.put(columnName, columnValue);
     }
-
-    public boolean matches(Hashtable<String, Object> searchValues) {
-        for (String key : searchValues.keySet()) {
-            if (!this.get(key).equals(searchValues.get(key))) {
-                return false;
-            }
-        }
-
-        return true;
-    }
 }
