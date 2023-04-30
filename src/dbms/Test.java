@@ -14,42 +14,45 @@ public class Test {
     public static void main(String[] args) throws DBAppException {
         DBApp dbApp = new DBApp();
         dbApp.init();
+
+//        Hashtable<String, String> columnTypes = new Hashtable<>();
+//        columnTypes.put("id", "java.lang.Integer");
+//        columnTypes.put("name", "java.lang.String");
+//        columnTypes.put("birthdate", "java.util.Date");
+//
+//        Hashtable<String, String> columnMin = new Hashtable<>();
+//        columnMin.put("id", "1");
+//        columnMin.put("name", "A");
+//        columnMin.put("birthdate", "1950-01-01");
+//
+//        Hashtable<String, String> columnMax = new Hashtable<>();
+//        columnMax.put("id", "2000");
+//        columnMax.put("name", "Z");
+//        columnMax.put("birthdate", "2023-01-01");
 //
 //        dbApp.createTable(
-//            "Student",
-//            "id",
-//            new Hashtable<>() {{
-//                put("id", "java.lang.Integer");
-//                put("name", "java.lang.String");
-//                put("birthdate", "java.util.Date");
-//            }},
-//            new Hashtable<>() {{
-//                put("id", "1");
-//                put("name", "A");
-//                put("birthdate", "1950-01-01");
-//            }},
-//            new Hashtable<>() {{
-//                put("id", "2000");
-//                put("name", "Z");
-//                put("birthdate", "2023-01-01");
-//            }}
+//            "Student2",
+//            "name",
+//            columnTypes,
+//            columnMin,
+//            columnMax
 //        );
 
-//
+
 //        for (int i = 1; i < 10; i++) {
-//            Hashtable<String, Object> values1 = new Hashtable<>();
-//            values1.put("id", i);
-//            values1.put("name", "Waheed " + i);
-//            values1.put("birthdate", new Date("2000/10/15"));
-//
-//            dbApp.insertIntoTable(
-//                "Student",
-//                values1
-//            );
+            Hashtable<String, Object> values1 = new Hashtable<>();
+            values1.put("id", 5);
+            values1.put("name", "Ahmed");
+            values1.put("birthdate", new Date("2000/10/15"));
+
+            dbApp.insertIntoTable(
+                "Student2",
+                values1
+            );
 //        }
-//
+
 ////
-        Table table = dbApp.loadTable("Student");
+        Table table = dbApp.loadTable("Student2");
         Vector<PageIndexItem> pagesIndex = table.getPagesIndex();
         SerializedPageManager pageManager = new SerializedPageManager();
 
@@ -62,28 +65,28 @@ public class Test {
             }
             System.out.println();
         }
-
-        System.out.println("=====================================");
-
-        Hashtable<String, Object> values = new Hashtable<>();
-        values.put("name", 1);
-
-        dbApp.updateTable(
-            "Student",
-            "9",
-            values
-        );
-
-        table = dbApp.loadTable("Student");
-        pagesIndex = table.getPagesIndex();
-
-        for (dbms.pages.PageIndexItem pageIndex : pagesIndex) {
-            dbms.pages.Page page = pageManager.loadPage(pageIndex.fileName);
-            for (dbms.pages.Row row : page.getRows()) {
-                System.out.println(row.get("id") + " " + row.get("name") + " " + row.get("gpa"));
-            }
-            System.out.println();
-        }
+//
+//        System.out.println("=====================================");
+//
+//        Hashtable<String, Object> values = new Hashtable<>();
+//        values.put("name", 1);
+//
+//        dbApp.updateTable(
+//            "Student",
+//            "9",
+//            values
+//        );
+//
+//        table = dbApp.loadTable("Student");
+//        pagesIndex = table.getPagesIndex();
+//
+//        for (dbms.pages.PageIndexItem pageIndex : pagesIndex) {
+//            dbms.pages.Page page = pageManager.loadPage(pageIndex.fileName);
+//            for (dbms.pages.Row row : page.getRows()) {
+//                System.out.println(row.get("id") + " " + row.get("name") + " " + row.get("gpa"));
+//            }
+//            System.out.println();
+//        }
 
 //                Vector<Integer> integers = new Vector<>();
 //        integers.add(1); // 0

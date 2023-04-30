@@ -5,7 +5,7 @@ import dbms.DBAppException;
 public class StringDataType implements DataType {
     @Override
     public int compare(Object a, Object b) {
-        return ((String) a).compareTo((String) b);
+        return ((String) a).toLowerCase().compareTo(((String) b).toLowerCase());
     }
 
     @Override
