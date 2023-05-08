@@ -8,4 +8,5 @@ public interface DataType extends Serializable {
     int compare(Object a, Object b);
     Object parse(String str) throws DBAppException;
     String toString(Object obj) throws DBAppException;
+    Object calculateMid(Object start, Object end);
 }

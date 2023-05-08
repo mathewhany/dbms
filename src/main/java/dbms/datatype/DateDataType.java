@@ -24,4 +24,13 @@ public class DateDataType implements DataType {
     public String toString(Object obj) {
         return new SimpleDateFormat("yyyy-MM-dd").format((Date) obj);
     }
+
+    @Override
+    public Object calculateMid(Object start, Object end) {
+        Date startDate = (Date) start;
+        Date endDate = (Date) end;
+
+        return new Date((startDate.getTime() + endDate.getTime()) / 2);
+
+    }
 }

@@ -1,6 +1,6 @@
 package dbms.tables;
 
-import dbms.DBAppException;
+import dbms.*;
 import dbms.pages.PageIndexItem;
 import dbms.pages.Row;
 import dbms.util.Util;
@@ -9,9 +9,6 @@ import dbms.datatype.DataType;
 import dbms.pages.Page;
 import dbms.pages.PageManager;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.Hashtable;
 import java.util.Set;
 import java.util.Vector;
@@ -283,6 +280,33 @@ public class Table {
         }
 
         return false;
+    }
+
+    public Expression sqlTermToExpression(SQLTerm sqlTerm) throws DBAppException {
+        String columnName = sqlTerm._strColumnName;
+        String columnType = columnTypes.get(columnName);
+        DataType dataType = dataTypes.get(columnType);
+        Object value = sqlTerm._objValue;
+
+        if (sqlTerm._strOperator.equals("=")) {
+            return new Range(sqlTerm._strColumnName, value, value, dataType);
+        } else if (sqlTerm._strOperator.equals(">")) {
+            return new Range(sqlTerm._strColumnName, value, columnMax.get(columnName), dataType, false, true);
+        } else if (sqlTerm._strOperator.equals(">=")) {
+            return new Range(sqlTerm._strColumnName, value, columnMax.get(columnName), dataType);
+        } else if (sqlTerm._strOperator.equals("<")) {
+            return new Range(sqlTerm._strColumnName, columnMin.get(columnName), value, dataType, true, false);
+        } else if (sqlTerm._strOperator.equals("<=")) {
+            return new Range(sqlTerm._strColumnName, columnMin.get(columnName), value, dataType);
+        } else if (sqlTerm._strOperator.equals("!=")) {
+            return new BinaryExpression(
+                new Range(sqlTerm._strColumnName, columnMin.get(columnName), value, dataType, true, false),
+                new Range(sqlTerm._strColumnName, value, columnMax.get(columnName), dataType, false, true),
+                "or"
+            );
+        } else {
+            throw new DBAppException("Invalid operator " + sqlTerm._strOperator);
+        }
     }
 
     public String getTableName() {

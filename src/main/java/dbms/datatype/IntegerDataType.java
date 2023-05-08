@@ -21,4 +21,9 @@ public class IntegerDataType implements DataType {
     public String toString(Object obj) {
         return obj.toString();
     }
+
+    @Override
+    public Object calculateMid(Object start, Object end) {
+        return ((Integer) start + (Integer) end) / 2;
+    }
 }

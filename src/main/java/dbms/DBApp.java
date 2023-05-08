@@ -4,9 +4,7 @@ import dbms.config.Config;
 import dbms.config.ConfigManager;
 import dbms.config.PropertiesConfigManager;
 import dbms.datatype.*;
-import dbms.pages.PageIndexItem;
-import dbms.pages.SerializedPageManager;
-import dbms.pages.SerializedPagesIndexManager;
+import dbms.pages.*;
 import dbms.tables.CsvTableManager;
 import dbms.tables.Table;
 
@@ -169,14 +167,27 @@ public class DBApp {
     /**
      * Selects rows from the table.
      *
-     * @param sqlTerms  An array of dbms.SQLTerm objects. Each dbms.SQLTerm object is a condition (table, column, value, operator).
+     * @param sqlTerms  An array of SQLTerm objects. Each SQLTerm object is a condition (table, column, value, operator).
      * @param operators An array of strings. Each string is an operator (AND, OR).
      *                  The array will be of size 0 in case there is only one condition.
      * @return An iterator that iterates over the rows that match the conditions.
      * @throws DBAppException
      */
     public Iterator selectFromTable(SQLTerm[] sqlTerms, String[] operators) throws DBAppException {
-        return null;
+        String tableName = sqlTerms[0]._strTableName;
+        Table table = loadTable(tableName);
+        TableIterator tableIterator = new TableIterator(table, pageManager);
+
+        Expression expression = table.sqlTermToExpression(sqlTerms[0]);
+        for (int i = 1; i < sqlTerms.length; i++) {
+            expression = new BinaryExpression(
+                expression,
+                table.sqlTermToExpression(sqlTerms[i]),
+                operators[i - 1]
+            );
+        }
+
+        return new FilterIterator(tableIterator, expression);
     }
 
     public Table loadTable(String tableName) throws DBAppException {
@@ -186,4 +197,5 @@ public class DBApp {
 
         return table;
     }
+
 }
