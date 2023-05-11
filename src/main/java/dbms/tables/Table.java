@@ -1,15 +1,15 @@
 package dbms.tables;
 
 import dbms.*;
+import dbms.indicies.Index;
 import dbms.indicies.IndexManager;
-import dbms.pages.PageIndexItem;
-import dbms.pages.Row;
+import dbms.pages.*;
 import dbms.util.Util;
 import dbms.config.Config;
 import dbms.datatype.DataType;
-import dbms.pages.Page;
-import dbms.pages.PageManager;
 
+import javax.xml.crypto.Data;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Set;
 import java.util.Vector;
@@ -30,20 +30,20 @@ public class Table {
     private Vector<PageIndexItem> pagesIndex = new Vector<>();
 
     public Table(
-        String tableName,
-        String clusteringKeyColumn,
-        Hashtable<String, String> columnTypes,
-        Hashtable<String, String> columnMin,
-        Hashtable<String, String> columnMax,
-        Config config,
-        PageManager pageManager,
-        Hashtable<String, DataType> dataTypes,
-        IndexManager indexManager,
-        Hashtable<String, String> indexNames,
-        Hashtable<String, String> indexTypes
+            String tableName,
+            String clusteringKeyColumn,
+            Hashtable<String, String> columnTypes,
+            Hashtable<String, String> columnMin,
+            Hashtable<String, String> columnMax,
+            Config config,
+            PageManager pageManager,
+            Hashtable<String, DataType> dataTypes,
+            IndexManager indexManager,
+            Hashtable<String, String> indexNames,
+            Hashtable<String, String> indexTypes
     ) throws DBAppException {
         if (!columnTypes.keySet().equals(columnMin.keySet()) ||
-            !columnTypes.keySet().equals(columnMax.keySet())) {
+                !columnTypes.keySet().equals(columnMax.keySet())) {
             throw new DBAppException("Column types and column min/max don't match");
         }
 
@@ -112,30 +112,38 @@ public class Table {
 //        }
 
         Row currentRow = new Row(row, clusteringKeyColumn);
-
+        Hashtable<String, Index> indices = new Hashtable<>();
+        for (String indexName : indexNames.values()) {
+            if (!indices.contains(indexName)) {
+                indices.put(indexName, indexManager.loadIndex(indexName, tableName));
+            }
+        }
+        DataType clusteringKeyType = dataTypes.get(columnTypes.get(clusteringKeyColumn));
         // Binary search index of dbms.pages
         int searchRes = Util.binarySearch(
-            pagesIndex,
-            currentRow.getClusteringKeyValue(),
-            (pageIndexItem) -> pageIndexItem.pageMin,
-            dataTypes.get(columnTypes.get(clusteringKeyColumn))
+                pagesIndex,
+                currentRow.getClusteringKeyValue(),
+                (pageIndexItem) -> pageIndexItem.pageMin,
+                clusteringKeyType
         );
         int index = Math.max(searchRes, 0);
 
         while (true) {
             if (index >= pagesIndex.size()) {
                 Page newPage = new Page(
-                    config.getMaximumRowsCountInTablePage(),
-                    columnTypes,
-                    dataTypes,
-                    clusteringKeyColumn
+                        config.getMaximumRowsCountInTablePage(),
+                        columnTypes,
+                        dataTypes,
+                        clusteringKeyColumn
                 );
                 newPage.setPageId(generatePageId());
                 newPage.insert(currentRow);
                 pageManager.savePage(newPage);
-
+                for (Index tableIndex : indices.values()) {
+                    tableIndex.insert(currentRow);
+                }
                 PageIndexItem newPageIndexItem =
-                    new PageIndexItem(currentRow.getClusteringKeyValue(), newPage.getPageId());
+                        new PageIndexItem(currentRow.getClusteringKeyValue(), newPage.getPageId());
                 pagesIndex.add(newPageIndexItem);
 
                 newPage = null;
@@ -151,6 +159,12 @@ public class Table {
             page = null;
             System.gc();
 
+            if (returnedRow == null || clusteringKeyType.compare(returnedRow, currentRow) != 0) {
+                for (Index tableIndex : indices.values()) {
+                    tableIndex.insert(currentRow);
+                }
+            }
+
             if (returnedRow != null) {
                 currentRow = returnedRow;
                 index++;
@@ -159,36 +173,56 @@ public class Table {
             }
         }
 
+        for (Index tableIndex : indices.values()) {
+            indexManager.saveIndex(tableIndex);
+        }
+
         System.gc();
     }
 
     public void update(String clusteringKeyValue, Hashtable<String, Object> newValues) throws
-        DBAppException {
+            DBAppException {
         validate(newValues);
         if (newValues.containsKey(clusteringKeyColumn)) {
             throw new DBAppException("Cannot update clustering key column");
         }
-
+        Hashtable<String, Index> indices = new Hashtable<>();
+        for (String columnName : newValues.keySet()) {
+            String indexName = indexNames.get(columnName);
+            if (indexName != null && !indices.contains(indexName)) {
+                indices.put(indexName, indexManager.loadIndex(indexName, tableName));
+            }
+        }
         String clusteringKeyType = columnTypes.get(clusteringKeyColumn);
         DataType clusteringKeyDataType = dataTypes.get(clusteringKeyType);
         Object clusterKeyValueObj = clusteringKeyDataType.parse(clusteringKeyValue);
 
         int searchRes = Util.binarySearch(
-            pagesIndex,
-            clusterKeyValueObj,
-            (pageIndex) -> pageIndex.pageMin,
-            clusteringKeyDataType
+                pagesIndex,
+                clusterKeyValueObj,
+                (pageIndex) -> pageIndex.pageMin,
+                clusteringKeyDataType
         );
 
         if (searchRes < 0) {
             throw new DBAppException(
-                "Row with clustering key " + clusteringKeyValue + " not found");
+                    "Row with clustering key " + clusteringKeyValue + " not found");
         }
 
         PageIndexItem pageIndex = pagesIndex.get(searchRes);
         Page page = pageManager.loadPage(pageIndex.pageId);
-        page.update(clusterKeyValueObj, newValues);
+        UpdatedRow updatedRow = page.update(clusterKeyValueObj, newValues);
+
         pageManager.savePage(page);
+        for(Index index : indices.values()){
+
+                index.delete(updatedRow.getOldRow());
+                index.insert(updatedRow.getUpdatedRow());
+            }
+
+        for (Index tableIndex : indices.values()) {
+            indexManager.saveIndex(tableIndex);
+        }
         page = null;
         System.gc();
     }
@@ -208,8 +242,8 @@ public class Table {
 
             if (!expectedType.equals(actualType)) {
                 throw new DBAppException(
-                    "Expected type " + expectedType + " for column '" + columnName +
-                    "' but found " + actualType);
+                        "Expected type " + expectedType + " for column '" + columnName +
+                                "' but found " + actualType);
             }
 
             Object min = columnMin.get(columnName);
@@ -217,7 +251,7 @@ public class Table {
 
             if (dataType.compare(value, min) < 0 || dataType.compare(value, max) > 0) {
                 throw new DBAppException(
-                    "Value for column '" + columnName + "' must be between " + min + " and " + max);
+                        "Value for column '" + columnName + "' must be between " + min + " and " + max);
             }
         }
     }
@@ -256,12 +290,12 @@ public class Table {
     }
 
     private void deleteUsingClusteringKey(Hashtable<String, Object> searchValues) throws
-        DBAppException {
+            DBAppException {
         int pageIndex = Util.binarySearch(
-            pagesIndex,
-            searchValues.get(clusteringKeyColumn),
-            (pageIndexItem) -> pageIndexItem.pageMin,
-            dataTypes.get(columnTypes.get(clusteringKeyColumn))
+                pagesIndex,
+                searchValues.get(clusteringKeyColumn),
+                (pageIndexItem) -> pageIndexItem.pageMin,
+                dataTypes.get(columnTypes.get(clusteringKeyColumn))
         );
 
         if (pageIndex < 0) {
@@ -311,9 +345,9 @@ public class Table {
             return new Range(sqlTerm._strColumnName, columnMin.get(columnName), value, dataType);
         } else if (sqlTerm._strOperator.equals("!=")) {
             return new BinaryExpression(
-                new Range(sqlTerm._strColumnName, columnMin.get(columnName), value, dataType, true, false),
-                new Range(sqlTerm._strColumnName, value, columnMax.get(columnName), dataType, false, true),
-                "or"
+                    new Range(sqlTerm._strColumnName, columnMin.get(columnName), value, dataType, true, false),
+                    new Range(sqlTerm._strColumnName, value, columnMax.get(columnName), dataType, false, true),
+                    "or"
             );
         } else {
             throw new DBAppException("Invalid operator " + sqlTerm._strOperator);

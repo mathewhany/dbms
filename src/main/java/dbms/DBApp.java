@@ -22,6 +22,7 @@ public class DBApp {
     private static final String CONFIG_FILE_PATH = "src/main/resources/DBApp.config";
     private static final String TABLES_DIR = "src/main/resources/Data/tables/";
     private static final String PAGES_DIR = "src/main/resources/Data/pages/";
+    private static final String INDEX_DIR = "src/main/resources/Data/indices/";
 
     private Config config;
     private TableManager tableManager;
@@ -54,7 +55,12 @@ public class DBApp {
             System.out.println("Failed to load page manager");
         }
 
-        indexManager = new SerializedIndexManager();
+        try {
+            indexManager = new SerializedIndexManager(INDEX_DIR);
+        } catch (DBAppException e) {
+            e.printStackTrace();
+            System.out.println("Failed to load index manager");
+        }
 
         try {
             tableManager = new CsvTableManager(METADATA_FILE_PATH, config, pageManager, dataTypes, indexManager);

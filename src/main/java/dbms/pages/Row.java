@@ -3,7 +3,7 @@ package dbms.pages;
 import java.io.Serializable;
 import java.util.Hashtable;
 
-public class Row implements Serializable {
+public class Row implements Serializable , Cloneable{
     private String pageId;
     private final Hashtable<String, Object> values;
     private final String clusteringKeyColumnName;
@@ -34,5 +34,8 @@ public class Row implements Serializable {
 
     public void setPageId(String pageId) {
         this.pageId = pageId;
+    }
+    public Object clone() throws CloneNotSupportedException {
+        return super.clone();
     }
 }

@@ -12,4 +12,7 @@ public interface Index {
     void insert(Row row);
 
     void delete(Row row);
+
+    String getName();
+    String getTableName();
 }

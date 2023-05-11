@@ -76,7 +76,7 @@ public class Page implements Serializable {
         this.pageId = pageId;
     }
 
-    public void update(Object clusteringKeyValue, Hashtable<String, Object> newValues) throws
+    public UpdatedRow update(Object clusteringKeyValue, Hashtable<String, Object> newValues) throws
         DBAppException {
 
         DataType clusteringKeyType = dataTypes.get(columnTypes.get(clusteringKeyColumnName));
@@ -88,7 +88,12 @@ public class Page implements Serializable {
             clusteringKeyType
         );
         Row requiredRow = rows.get(index);
-
+        Row oldRow = null;
+        try {
+            oldRow = (Row) requiredRow.clone();
+        } catch (CloneNotSupportedException e) {
+            //this shouldn't be reachable
+        }
         if (clusteringKeyType.compare(requiredRow.getClusteringKeyValue(), clusteringKeyValue) !=
             0) {
             throw new DBAppException("Row not found");
@@ -97,6 +102,7 @@ public class Page implements Serializable {
         for (String key : newValues.keySet()) {
             requiredRow.put(key, newValues.get(key));
         }
+        return new UpdatedRow(oldRow, requiredRow);
     }
 
     public void deleteBinarySearch(Hashtable<String, Object> searchValues) {

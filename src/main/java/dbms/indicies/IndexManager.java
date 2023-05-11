@@ -1,7 +1,9 @@
 package dbms.indicies;
 
-public interface IndexManager {
-    Index loadIndex(String indexName, String tableName);
+import dbms.DBAppException;
 
-    void saveIndex(Index index);
+public interface IndexManager {
+    Index loadIndex(String indexName, String tableName) throws DBAppException;
+
+    void saveIndex(Index index) throws DBAppException;
 }
