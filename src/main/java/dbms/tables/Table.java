@@ -1,6 +1,7 @@
 package dbms.tables;
 
 import dbms.*;
+import dbms.indicies.IndexManager;
 import dbms.pages.PageIndexItem;
 import dbms.pages.Row;
 import dbms.util.Util;
@@ -22,6 +23,9 @@ public class Table {
     private final Config config;
     private final PageManager pageManager;
     private final Hashtable<String, DataType> dataTypes;
+    private final IndexManager indexManager;
+    private final Hashtable<String, String> indexNames;
+    private final Hashtable<String, String> indexTypes;
 
     private Vector<PageIndexItem> pagesIndex = new Vector<>();
 
@@ -33,7 +37,10 @@ public class Table {
         Hashtable<String, String> columnMax,
         Config config,
         PageManager pageManager,
-        Hashtable<String, DataType> dataTypes
+        Hashtable<String, DataType> dataTypes,
+        IndexManager indexManager,
+        Hashtable<String, String> indexNames,
+        Hashtable<String, String> indexTypes
     ) throws DBAppException {
         if (!columnTypes.keySet().equals(columnMin.keySet()) ||
             !columnTypes.keySet().equals(columnMax.keySet())) {
@@ -45,6 +52,7 @@ public class Table {
         this.config = config;
         this.pageManager = pageManager;
         this.dataTypes = dataTypes;
+        this.indexManager = indexManager;
 
         Set<String> columnNames = columnTypes.keySet();
         for (String columnName : columnNames) {
@@ -76,6 +84,9 @@ public class Table {
         if (tableName.isEmpty()) {
             throw new DBAppException("Table name cannot be empty");
         }
+
+        this.indexNames = indexNames;
+        this.indexTypes = indexTypes;
     }
 
     public String generatePageId() {

@@ -1,15 +1,13 @@
 package dbms.tables;
 
+import dbms.indicies.IndexManager;
 import dbms.config.Config;
 import dbms.util.CsvLoader;
 import dbms.DBAppException;
 import dbms.datatype.DataType;
 import dbms.pages.PageManager;
 
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.Hashtable;
 import java.util.Set;
 import java.util.Vector;
@@ -32,17 +30,20 @@ public class CsvTableManager implements TableManager {
     private final Config config;
     private final PageManager pageManager;
     private final Hashtable<String, DataType> dataTypes;
+    private final IndexManager indexManager;
 
     public CsvTableManager(
         String metadataFilePath,
         Config config,
         PageManager pageManager,
-        Hashtable<String, DataType> dataTypes
+        Hashtable<String, DataType> dataTypes,
+        IndexManager indexManager
     ) throws DBAppException {
         this.metadataFilePath = metadataFilePath;
         this.config = config;
         this.pageManager = pageManager;
         this.dataTypes = dataTypes;
+        this.indexManager = indexManager;
     }
 
 
@@ -64,6 +65,9 @@ public class CsvTableManager implements TableManager {
         Hashtable<String, String> columnTypes = new Hashtable<>();
         Hashtable<String, String> columnMin = new Hashtable<>();
         Hashtable<String, String> columnMax = new Hashtable<>();
+        Hashtable<String, String> columnIndexName = new Hashtable<>();
+        Hashtable<String, String> columnIndexType = new Hashtable<>();
+
         String clusteringKey = "";
 
         for (Hashtable<String, String> tableColumn : tableColumns) {
@@ -75,6 +79,9 @@ public class CsvTableManager implements TableManager {
             columnTypes.put(columnName, tableColumn.get(HEADER_COLUMN_TYPE));
             columnMin.put(columnName, tableColumn.get(HEADER_COLUMN_MIN));
             columnMax.put(columnName, tableColumn.get(HEADER_COLUMN_MAX));
+            columnIndexName.put(columnName, tableColumn.get(HEADER_INDEX_NAME));
+            columnIndexType.put(columnName, tableColumn.get(HEADER_INDEX_TYPE));
+
             if (tableColumn.get(HEADER_CLUSTERING_KEY).equals(TRUE)) {
                 clusteringKey = columnName;
             }
@@ -88,7 +95,10 @@ public class CsvTableManager implements TableManager {
             columnMax,
             config,
             pageManager,
-            dataTypes
+            dataTypes,
+            indexManager,
+            columnIndexName,
+            columnIndexType
         );
     }
 

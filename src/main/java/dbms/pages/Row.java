@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.Hashtable;
 
 public class Row implements Serializable {
+    private String pageId;
     private final Hashtable<String, Object> values;
     private final String clusteringKeyColumnName;
 
@@ -25,5 +26,13 @@ public class Row implements Serializable {
     }
     public void put(String columnName, Object columnValue) {
         values.put(columnName, columnValue);
+    }
+
+    public String getPageId() {
+        return pageId;
+    }
+
+    public void setPageId(String pageId) {
+        this.pageId = pageId;
     }
 }

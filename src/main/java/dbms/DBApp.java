@@ -4,9 +4,14 @@ import dbms.config.Config;
 import dbms.config.ConfigManager;
 import dbms.config.PropertiesConfigManager;
 import dbms.datatype.*;
+import dbms.indicies.IndexManager;
+import dbms.indicies.SerializedIndexManager;
+import dbms.iterators.FilterIterator;
+import dbms.iterators.TableIterator;
 import dbms.pages.*;
 import dbms.tables.CsvTableManager;
 import dbms.tables.Table;
+import dbms.tables.TableManager;
 
 import java.util.Hashtable;
 import java.util.Iterator;
@@ -19,10 +24,11 @@ public class DBApp {
     private static final String PAGES_DIR = "src/main/resources/Data/pages/";
 
     private Config config;
-    private CsvTableManager tableManager;
-    private SerializedPageManager pageManager;
-    private SerializedPagesIndexManager pagesIndexManager;
+    private TableManager tableManager;
+    private PageManager pageManager;
+    private PagesIndexManager pagesIndexManager;
     private Hashtable<String, DataType> dataTypes;
+    private IndexManager indexManager;
 
     /**
      * Executed once when the application starts.
@@ -48,8 +54,10 @@ public class DBApp {
             System.out.println("Failed to load page manager");
         }
 
+        indexManager = new SerializedIndexManager();
+
         try {
-            tableManager = new CsvTableManager(METADATA_FILE_PATH, config, pageManager, dataTypes);
+            tableManager = new CsvTableManager(METADATA_FILE_PATH, config, pageManager, dataTypes, indexManager);
         } catch (DBAppException e) {
             System.out.println("Failed to load table manager");
         }
@@ -87,7 +95,10 @@ public class DBApp {
             columnMax,
             config,
             pageManager,
-            dataTypes
+            dataTypes,
+            indexManager,
+            new Hashtable<>(),
+            new Hashtable<>()
         );
 
         tableManager.createTable(table);
@@ -103,6 +114,7 @@ public class DBApp {
     public void createIndex(
         String tableName, String[] columnNames
     ) throws DBAppException {
+
     }
 
     /**

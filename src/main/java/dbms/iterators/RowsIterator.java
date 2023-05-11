@@ -1,23 +1,23 @@
-package dbms;
+package dbms.iterators;
 
+import dbms.DBAppException;
 import dbms.pages.Page;
-import dbms.pages.PageIndexItem;
 import dbms.pages.PageManager;
 import dbms.pages.Row;
-import dbms.tables.Table;
 
 import java.util.Iterator;
 
-public class TableIterator implements Iterator<Row> {
-    private final Iterator<PageIndexItem> pagesIterator;
+public class RowsIterator implements Iterator<Row> {
+
+    private final Iterator<String> pagesIterator;
+    private final PageManager pageManager;
     private Row nextRow;
     private Iterator<Row> rowsIterators;
-    private final PageManager pageManager;
 
-
-    public TableIterator(Table table, PageManager pageManager) {
+    public RowsIterator(Iterator<String> pagesIterator, PageManager pageManager) {
+        this.pagesIterator = pagesIterator;
         this.pageManager = pageManager;
-        this.pagesIterator = table.getPagesIndex().iterator();
+
         this.nextRow = nextRow();
     }
 
@@ -40,7 +40,7 @@ public class TableIterator implements Iterator<Row> {
             }
 
             try {
-                Page currentPage = pageManager.loadPage(pagesIterator.next().pageId);
+                Page currentPage = pageManager.loadPage(pagesIterator.next());
                 rowsIterators = currentPage.getRows().iterator();
                 return nextRow();
             } catch (DBAppException e) {

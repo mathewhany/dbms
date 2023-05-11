@@ -96,4 +96,8 @@ public class Range implements Expression {
 
         return contains(value);
     }
+
+    public String getColumnName() {
+        return columnName;
+    }
 }

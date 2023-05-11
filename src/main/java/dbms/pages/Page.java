@@ -33,6 +33,8 @@ public class Page implements Serializable {
     }
 
     public Row insert(Row row) throws DBAppException {
+        row.setPageId(pageId);
+        
         if (rows.size() == 0) {
             rows.add(row);
             return null;

@@ -1,0 +1,176 @@
+package dbms.indicies;
+
+import dbms.DBAppException;
+import dbms.Range;
+import dbms.datatype.IntegerDataType;
+import dbms.pages.Row;
+
+import java.util.*;
+
+public class OctreeNode implements Index {
+    private final int maxCapacity;
+    private final Hashtable<Hashtable<String, Object>, Vector<String>> entries = new Hashtable<>();
+    private final Vector<OctreeNode> children = new Vector<>();
+
+    private final Vector<Range> ranges;
+
+    public OctreeNode(
+        int maxCapacity, Vector<Range> ranges
+    ) throws DBAppException {
+        this.maxCapacity = maxCapacity;
+
+        if (ranges.size() != 3) {
+            throw new DBAppException("Octree index must have 3 dimensions");
+        }
+
+        this.ranges = ranges;
+    }
+
+    public void insert(Row row) {
+        Hashtable<String, Object> key = new Hashtable<>();
+
+        for (Map.Entry<String, Object> entry : row.getValues().entrySet()) {
+            Range range = getRangeForColumn(entry.getKey());
+
+            if (range != null) {
+                key.put(entry.getKey(), entry.getValue());
+            }
+        }
+
+        insert(key, row.getPageId());
+    }
+
+    public void insert(Hashtable<String, Object> key, String value) {
+
+        if (isLeaf()) {
+            if (entries.containsKey(key)) {
+                entries.get(key).add(value);
+            } else {
+                if (isFull()) {
+                    subdivide();
+                    insert(key, value);
+                } else {
+                    Vector<String> values = new Vector<>();
+                    values.add(value);
+                    entries.put(key, values);
+                }
+            }
+        } else {
+            children.get(getIndex(key)).insert(key, value);
+        }
+    }
+
+    public void delete(Row row) {
+        throw new UnsupportedOperationException();
+    }
+
+
+    private void subdivide() {
+        for (Range x : ranges.get(0).split()) {
+            for (Range y : ranges.get(1).split()) {
+                for (Range z : ranges.get(2).split()) {
+                    try {
+                        children.add(new OctreeNode(maxCapacity, new Vector<>(Arrays.asList(x, y, z))));
+                    } catch (DBAppException e) {
+                        // This should never happen
+                    }
+                }
+            }
+        }
+
+        for (Map.Entry<Hashtable<String, Object>, Vector<String>> entry : entries.entrySet()) {
+            for (String value : entry.getValue()) {
+                children.get(getIndex(entry.getKey())).insert(entry.getKey(), value);
+            }
+        }
+
+        entries.clear();
+    }
+
+    public Iterator<String> find(Vector<Range> ranges) {
+        return new OctreeIterator(this, ranges, new HashSet<>());
+    }
+
+    private int getIndex(Hashtable<String, Object> key) {
+        return (ranges.get(0).inFirstHalf(key.get(ranges.get(0).getColumnName())) ? 0 : 1) * 4 +
+               (ranges.get(1).inFirstHalf(key.get(ranges.get(1).getColumnName())) ? 0 : 1) * 2 +
+               (ranges.get(2).inFirstHalf(key.get(ranges.get(2).getColumnName())) ? 0 : 1);
+    }
+
+    public boolean isLeaf() {
+        return children.isEmpty();
+    }
+
+    public boolean isFull() {
+        return entries.size() == maxCapacity;
+    }
+
+    public Hashtable<Hashtable<String, Object>, Vector<String>> getEntries() {
+        return entries;
+    }
+
+    public Vector<OctreeNode> getChildren() {
+        return children;
+    }
+
+    public Vector<Range> getRanges() {
+        return ranges;
+    }
+
+    public Range getRangeForColumn(String columnName) {
+        for (Range range : ranges) {
+            if (range.getColumnName().equals(columnName)) {
+                return range;
+            }
+        }
+
+        return null;
+    }
+
+    public boolean hasRangeForColumn(String columnName) {
+        return getRangeForColumn(columnName) != null;
+    }
+
+    public static void main(String[] args) throws DBAppException {
+        OctreeNode octreeNode = new OctreeNode(2, new Vector<>(Arrays.asList(
+            new Range("x", 0, 10, new IntegerDataType()),
+            new Range("y", 0, 10, new IntegerDataType()),
+            new Range("z", 0, 10, new IntegerDataType())
+        )));
+//
+//        octreeNode.insert(new Hashtable<>() {{
+//            put("x", 1);
+//            put("y", 1);
+//            put("z", 1);
+//        }}, "1");
+//        octreeNode.insert(new Hashtable<>() {{
+//            put("x", 3);
+//            put("y", 4);
+//            put("z", 2);
+//        }}, "2");
+//        octreeNode.insert(new Hashtable<>() {{
+//            put("x", 8);
+//            put("y", 3);
+//            put("z", 7);
+//        }}, "3");
+//        octreeNode.insert(new Hashtable<>() {{
+//            put("x", 3);
+//            put("y", 6);
+//            put("z", 9);
+//        }}, "4");
+//        octreeNode.insert(new Hashtable<>() {{
+//            put("x", 1);
+//            put("y", 2);
+//            put("z", 3);
+//        }}, "5");
+//
+//        Iterator<String> iterator = octreeNode.find(new Vector<>(Arrays.asList(
+//            new Range("x", 0, 2, new IntegerDataType()),
+//            new Range("y", 0, 6, new IntegerDataType())
+//        )));
+//
+//        while (iterator.hasNext()) {
+//            System.out.println(iterator.next());
+//        }
+    }
+}
