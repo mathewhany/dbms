@@ -2,6 +2,7 @@ package dbms.indicies;
 
 import dbms.DBAppException;
 import dbms.Range;
+import dbms.datatype.IntegerDataType;
 import dbms.pages.Row;
 
 import java.io.Serializable;
@@ -62,8 +63,37 @@ public class OctreeNode implements Index, Serializable {
         }
     }
 
+    public void delete(Hashtable<String, Object> key , String value ) {
+//        Vector<Range> SearchRanges = new Vector<>();
+//        Hashtable<String,Object> values =  row.getValues();
+//        for (Range range  : ranges){
+//            String colName = range.getColumnName();
+//            Object colNameValue = values.get(colName);
+//            Range desiredRange = new Range(colName,colNameValue,colNameValue,range.getType(),true,false );
+//            SearchRanges.add(desiredRange);
+//        }
+        if (isLeaf()) {
+            Hashtable<Hashtable<String, Object>, Vector<String>>NewEntries = entries;
+            if (NewEntries.containsKey(key)) {
+                entries.get(key).removeElement(value);
+            }
+        } else {
+            children.get(getIndex(key)).delete(key, value);
+        }
+
+    }
     public void delete(Row row) {
-        throw new UnsupportedOperationException();
+        Hashtable<String, Object> key = new Hashtable<>();
+
+        for (Map.Entry<String, Object> entry : row.getValues().entrySet()) {
+            Range range = getRangeForColumn(entry.getKey());
+
+            if (range != null) {
+                key.put(entry.getKey(), entry.getValue());
+            }
+        }
+
+        delete(key,row.getPageId());
     }
 
     @Override
