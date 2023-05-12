@@ -2,7 +2,6 @@ package dbms.indicies;
 
 import dbms.DBAppException;
 import dbms.Range;
-import dbms.datatype.IntegerDataType;
 import dbms.pages.Row;
 
 import java.io.Serializable;
@@ -31,17 +30,7 @@ public class OctreeNode implements Index, Serializable {
     }
 
     public void insert(Row row) {
-        Hashtable<String, Object> key = new Hashtable<>();
-
-        for (Map.Entry<String, Object> entry : row.getValues().entrySet()) {
-            Range range = getRangeForColumn(entry.getKey());
-
-            if (range != null) {
-                key.put(entry.getKey(), entry.getValue());
-            }
-        }
-
-        insert(key, row.getPageId());
+        insert(getKeyForRow(row), row.getPageId());
     }
 
     private void insert(Hashtable<String, Object> key, String value) {
@@ -63,18 +52,9 @@ public class OctreeNode implements Index, Serializable {
         }
     }
 
-    public void delete(Hashtable<String, Object> key , String value ) {
-//        Vector<Range> SearchRanges = new Vector<>();
-//        Hashtable<String,Object> values =  row.getValues();
-//        for (Range range  : ranges){
-//            String colName = range.getColumnName();
-//            Object colNameValue = values.get(colName);
-//            Range desiredRange = new Range(colName,colNameValue,colNameValue,range.getType(),true,false );
-//            SearchRanges.add(desiredRange);
-//        }
+    public void delete(Hashtable<String, Object> key, String value) {
         if (isLeaf()) {
-            Hashtable<Hashtable<String, Object>, Vector<String>>NewEntries = entries;
-            if (NewEntries.containsKey(key)) {
+            if (entries.containsKey(key)) {
                 entries.get(key).removeElement(value);
             }
         } else {
@@ -82,7 +62,12 @@ public class OctreeNode implements Index, Serializable {
         }
 
     }
+
     public void delete(Row row) {
+        delete(getKeyForRow(row), row.getPageId());
+    }
+
+    private Hashtable<String, Object> getKeyForRow(Row row) {
         Hashtable<String, Object> key = new Hashtable<>();
 
         for (Map.Entry<String, Object> entry : row.getValues().entrySet()) {
@@ -92,8 +77,7 @@ public class OctreeNode implements Index, Serializable {
                 key.put(entry.getKey(), entry.getValue());
             }
         }
-
-        delete(key,row.getPageId());
+        return key;
     }
 
     @Override

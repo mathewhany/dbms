@@ -12,11 +12,6 @@ public class Range implements Expression, Serializable {
     private final Object start;
     private final Object end;
 
-
-    public DataType getType() {
-        return type;
-    }
-
     private final DataType type;
 
     private final boolean isStartInclusive;
