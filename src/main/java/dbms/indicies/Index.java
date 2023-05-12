@@ -3,6 +3,7 @@ package dbms.indicies;
 import dbms.Range;
 import dbms.pages.Row;
 
+import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Vector;
 
@@ -15,4 +16,6 @@ public interface Index {
 
     String getName();
     String getTableName();
+
+    Iterator<String> findExact(Hashtable<String, Object> searchKey);
 }

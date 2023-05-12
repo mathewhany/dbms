@@ -26,4 +26,9 @@ public class DoubleDataType implements DataType {
     public Object calculateMid(Object start, Object end) {
         return ((Double) start + (Double) end) / 2;
     }
+
+    @Override
+    public boolean isValidObject(Object obj) {
+        return obj instanceof Double;
+    }
 }

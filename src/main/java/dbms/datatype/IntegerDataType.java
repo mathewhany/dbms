@@ -26,4 +26,9 @@ public class IntegerDataType implements DataType {
     public Object calculateMid(Object start, Object end) {
         return ((Integer) start + (Integer) end) / 2;
     }
+
+    @Override
+    public boolean isValidObject(Object obj) {
+        return obj instanceof Integer;
+    }
 }

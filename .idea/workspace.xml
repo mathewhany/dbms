@@ -4,17 +4,30 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="86b23039-3874-4a2b-bcf9-322efec03290" name="Changes" comment="Changed StringDataType.compare() to be case in-sensitive.">
-      <change afterPath="$PROJECT_DIR$/.idea/runConfigurations.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/dbms/pages/UpdatedRow.java" afterDir="false" />
+    <list default="true" id="86b23039-3874-4a2b-bcf9-322efec03290" name="Changes" comment="Added Octree classes and Index interfaces.">
+      <change afterPath="$PROJECT_DIR$/src/main/java/dbms/indicies/IndexFactory.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/dbms/indicies/OctreeFactory.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/dbms/iterators/RowToHashtableIterator.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/dbms/BinaryExpression.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/dbms/BinaryExpression.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/dbms/DBApp.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/dbms/DBApp.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/dbms/Expression.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/dbms/Expression.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/dbms/Range.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/dbms/Range.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/dbms/datatype/DataType.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/dbms/datatype/DataType.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/dbms/datatype/DateDataType.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/dbms/datatype/DateDataType.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/dbms/datatype/DoubleDataType.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/dbms/datatype/DoubleDataType.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/dbms/datatype/IntegerDataType.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/dbms/datatype/IntegerDataType.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/dbms/datatype/StringDataType.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/dbms/datatype/StringDataType.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/dbms/indicies/Index.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/dbms/indicies/Index.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/dbms/indicies/IndexManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/dbms/indicies/IndexManager.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/dbms/indicies/OctreeNode.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/dbms/indicies/OctreeNode.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/dbms/indicies/SerializedIndexManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/dbms/indicies/SerializedIndexManager.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/dbms/pages/Page.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/dbms/pages/Page.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/dbms/pages/Row.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/dbms/pages/Row.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/dbms/tables/CsvTableManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/dbms/tables/CsvTableManager.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/dbms/tables/Table.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/dbms/tables/Table.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/dbms/tables/TableManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/dbms/tables/TableManager.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/dbms/util/Util.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/dbms/util/Util.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/DBApp.config" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/DBApp.config" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -36,6 +49,7 @@
       </map>
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+    <option name="UPDATE_TYPE" value="REBASE" />
   </component>
   <component name="GitSEFilterConfiguration">
     <file-type-list>
@@ -67,11 +81,22 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">
-    <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
-  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "WebServerToolWindowFactoryState": "false",
+    "git-widget-placeholder": "main",
+    "node.js.detected.package.eslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "settings.editor.selected.configurable": "preferences.lookFeel",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
   <component name="RecentsManager">
     <key name="CreateClassDialog.RecentsKey">
+      <recent name="dbms.indicies" />
       <recent name="dbms" />
       <recent name="dbms.datatype" />
       <recent name="dbms.pages" />
@@ -111,7 +136,7 @@
       <module name="dbms" />
       <extension name="coverage">
         <pattern>
-          <option name="PATTERN" value="dbms.indicies.*" />
+          <option name="PATTERN" value="dbms.indicies.IndexStorageStrategy" />
           <option name="ENABLED" value="true" />
         </pattern>
       </extension>
@@ -185,6 +210,7 @@
       <workItem from="1683569189394" duration="5781000" />
       <workItem from="1683739653533" duration="8023000" />
       <workItem from="1683806527833" duration="4040000" />
+      <workItem from="1683901114237" duration="5452000" />
     </task>
     <task id="LOCAL-00001" summary="Finish deleteFromTable">
       <created>1682623578564</created>
@@ -244,7 +270,6 @@
         </entry>
       </map>
     </option>
-    <option name="oldMeFiltersMigrated" value="true" />
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Refactoring" />
@@ -261,33 +286,23 @@
       <breakpoints>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/test/java/Test.java</url>
-          <line>36</line>
+          <line>48</line>
           <option name="timeStamp" value="2" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/test/java/Test.java</url>
-          <line>81</line>
+          <line>127</line>
           <option name="timeStamp" value="3" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/test/java/Test.java</url>
-          <line>19</line>
+          <line>25</line>
           <option name="timeStamp" value="5" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/dbms/indicies/OctreeIterator.java</url>
           <line>103</line>
           <option name="timeStamp" value="8" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/dbms/indicies/OctreeNode.java</url>
-          <line>164</line>
-          <option name="timeStamp" value="10" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/dbms/indicies/OctreeIterator.java</url>
-          <line>54</line>
-          <option name="timeStamp" value="11" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/dbms/iterators/RowsIterator.java</url>
@@ -308,6 +323,11 @@
           <url>file://$PROJECT_DIR$/src/main/java/dbms/iterators/FilterIterator.java</url>
           <line>30</line>
           <option name="timeStamp" value="20" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/test/java/Test.java</url>
+          <line>76</line>
+          <option name="timeStamp" value="22" />
         </line-breakpoint>
         <breakpoint enabled="true" type="java-exception">
           <properties class="dbms.DBAppException" package="dbms" />

@@ -62,4 +62,9 @@ public class StringDataType implements DataType {
 
         return mid.toString();
     }
+
+    @Override
+    public boolean isValidObject(Object obj) {
+        return obj instanceof String;
+    }
 }

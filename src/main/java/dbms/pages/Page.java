@@ -92,11 +92,13 @@ public class Page implements Serializable {
         try {
             oldRow = (Row) requiredRow.clone();
         } catch (CloneNotSupportedException e) {
-            //this shouldn't be reachable
+            // This should never happen
         }
         if (clusteringKeyType.compare(requiredRow.getClusteringKeyValue(), clusteringKeyValue) !=
             0) {
-            throw new DBAppException("Row not found");
+//            throw new DBAppException("Row not found");
+            // https://piazza.com/class/lel8rsvwc4e7j6/post/158
+            return null;
         }
 
         for (String key : newValues.keySet()) {

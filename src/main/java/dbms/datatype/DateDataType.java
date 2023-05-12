@@ -33,4 +33,9 @@ public class DateDataType implements DataType {
         return new Date((startDate.getTime() + endDate.getTime()) / 2);
 
     }
+
+    @Override
+    public boolean isValidObject(Object obj) {
+        return obj instanceof Date;
+    }
 }

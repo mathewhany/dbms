@@ -3,16 +3,17 @@ package dbms.tables;
 import dbms.*;
 import dbms.indicies.Index;
 import dbms.indicies.IndexManager;
+import dbms.iterators.FilterIterator;
+import dbms.iterators.RowToHashtableIterator;
+import dbms.iterators.RowsIterator;
+import dbms.iterators.TableIterator;
 import dbms.pages.*;
 import dbms.util.Util;
 import dbms.config.Config;
 import dbms.datatype.DataType;
 
 import javax.xml.crypto.Data;
-import java.util.HashSet;
-import java.util.Hashtable;
-import java.util.Set;
-import java.util.Vector;
+import java.util.*;
 
 public class Table {
     private final String tableName;
@@ -30,20 +31,20 @@ public class Table {
     private Vector<PageIndexItem> pagesIndex = new Vector<>();
 
     public Table(
-            String tableName,
-            String clusteringKeyColumn,
-            Hashtable<String, String> columnTypes,
-            Hashtable<String, String> columnMin,
-            Hashtable<String, String> columnMax,
-            Config config,
-            PageManager pageManager,
-            Hashtable<String, DataType> dataTypes,
-            IndexManager indexManager,
-            Hashtable<String, String> indexNames,
-            Hashtable<String, String> indexTypes
+        String tableName,
+        String clusteringKeyColumn,
+        Hashtable<String, String> columnTypes,
+        Hashtable<String, String> columnMin,
+        Hashtable<String, String> columnMax,
+        Config config,
+        PageManager pageManager,
+        Hashtable<String, DataType> dataTypes,
+        IndexManager indexManager,
+        Hashtable<String, String> indexNames,
+        Hashtable<String, String> indexTypes
     ) throws DBAppException {
         if (!columnTypes.keySet().equals(columnMin.keySet()) ||
-                !columnTypes.keySet().equals(columnMax.keySet())) {
+            !columnTypes.keySet().equals(columnMax.keySet())) {
             throw new DBAppException("Column types and column min/max don't match");
         }
 
@@ -102,14 +103,15 @@ public class Table {
 
     public void insert(Hashtable<String, Object> row) throws DBAppException {
         validate(row);
-        if (!row.containsKey(clusteringKeyColumn)) {
-            throw new DBAppException("Cannot insert row without clustering key");
-        }
+//        if (!row.containsKey(clusteringKeyColumn)) {
+//            throw new DBAppException("Cannot insert row without clustering key");
+//        }
 
         // https://piazza.com/class/lel8rsvwc4e7j6/post/32
-//        if (row.size() != columnTypes.size()) {
-//            throw new DBAppException("Row size doesn't match table size");
-//        }
+        // https://piazza.com/class/lel8rsvwc4e7j6/post/257
+        if (row.size() != columnTypes.size()) {
+            throw new DBAppException("Cannot insert null values");
+        }
 
         Row currentRow = new Row(row, clusteringKeyColumn);
         Hashtable<String, Index> indices = new Hashtable<>();
@@ -121,20 +123,20 @@ public class Table {
         DataType clusteringKeyType = dataTypes.get(columnTypes.get(clusteringKeyColumn));
         // Binary search index of dbms.pages
         int searchRes = Util.binarySearch(
-                pagesIndex,
-                currentRow.getClusteringKeyValue(),
-                (pageIndexItem) -> pageIndexItem.pageMin,
-                clusteringKeyType
+            pagesIndex,
+            currentRow.getClusteringKeyValue(),
+            (pageIndexItem) -> pageIndexItem.pageMin,
+            clusteringKeyType
         );
         int index = Math.max(searchRes, 0);
 
         while (true) {
             if (index >= pagesIndex.size()) {
                 Page newPage = new Page(
-                        config.getMaximumRowsCountInTablePage(),
-                        columnTypes,
-                        dataTypes,
-                        clusteringKeyColumn
+                    config.getMaximumRowsCountInTablePage(),
+                    columnTypes,
+                    dataTypes,
+                    clusteringKeyColumn
                 );
                 newPage.setPageId(generatePageId());
                 newPage.insert(currentRow);
@@ -143,7 +145,7 @@ public class Table {
                     tableIndex.insert(currentRow);
                 }
                 PageIndexItem newPageIndexItem =
-                        new PageIndexItem(currentRow.getClusteringKeyValue(), newPage.getPageId());
+                    new PageIndexItem(currentRow.getClusteringKeyValue(), newPage.getPageId());
                 pagesIndex.add(newPageIndexItem);
 
                 newPage = null;
@@ -159,7 +161,10 @@ public class Table {
             page = null;
             System.gc();
 
-            if (returnedRow == null || clusteringKeyType.compare(returnedRow, currentRow) != 0) {
+            if (returnedRow == null || clusteringKeyType.compare(
+                returnedRow.getClusteringKeyValue(),
+                currentRow.getClusteringKeyValue()
+            ) != 0) {
                 for (Index tableIndex : indices.values()) {
                     tableIndex.insert(currentRow);
                 }
@@ -181,11 +186,12 @@ public class Table {
     }
 
     public void update(String clusteringKeyValue, Hashtable<String, Object> newValues) throws
-            DBAppException {
+        DBAppException {
         validate(newValues);
         if (newValues.containsKey(clusteringKeyColumn)) {
             throw new DBAppException("Cannot update clustering key column");
         }
+
         Hashtable<String, Index> indices = new Hashtable<>();
         for (String columnName : newValues.keySet()) {
             String indexName = indexNames.get(columnName);
@@ -193,38 +199,42 @@ public class Table {
                 indices.put(indexName, indexManager.loadIndex(indexName, tableName));
             }
         }
+
         String clusteringKeyType = columnTypes.get(clusteringKeyColumn);
         DataType clusteringKeyDataType = dataTypes.get(clusteringKeyType);
         Object clusterKeyValueObj = clusteringKeyDataType.parse(clusteringKeyValue);
 
         int searchRes = Util.binarySearch(
-                pagesIndex,
-                clusterKeyValueObj,
-                (pageIndex) -> pageIndex.pageMin,
-                clusteringKeyDataType
+            pagesIndex,
+            clusterKeyValueObj,
+            (pageIndex) -> pageIndex.pageMin,
+            clusteringKeyDataType
         );
 
         if (searchRes < 0) {
-            throw new DBAppException(
-                    "Row with clustering key " + clusteringKeyValue + " not found");
+//            throw new DBAppException(
+//                "Row with clustering key " + clusteringKeyValue + " not found");
+            // https://piazza.com/class/lel8rsvwc4e7j6/post/158
+            return;
         }
 
         PageIndexItem pageIndex = pagesIndex.get(searchRes);
         Page page = pageManager.loadPage(pageIndex.pageId);
         UpdatedRow updatedRow = page.update(clusterKeyValueObj, newValues);
-
         pageManager.savePage(page);
-        for(Index index : indices.values()){
 
-                index.delete(updatedRow.getOldRow());
-                index.insert(updatedRow.getUpdatedRow());
-            }
-
-        for (Index tableIndex : indices.values()) {
-            indexManager.saveIndex(tableIndex);
-        }
         page = null;
         System.gc();
+
+        if (updatedRow == null) {
+            return;
+        }
+
+        for (Index index : indices.values()) {
+            index.delete(updatedRow.getOldRow());
+            index.insert(updatedRow.getUpdatedRow());
+            indexManager.saveIndex(index);
+        }
     }
 
     public void validate(Hashtable<String, Object> row) throws DBAppException {
@@ -235,15 +245,11 @@ public class Table {
                 throw new DBAppException("Column " + columnName + " not found");
             }
 
-            String expectedType = columnTypes.get(columnName);
-            DataType dataType = dataTypes.get(expectedType);
+            DataType dataType = getDataType(columnName);
 
-            String actualType = value.getClass().getName();
-
-            if (!expectedType.equals(actualType)) {
+            if (!dataType.isValidObject(value)) {
                 throw new DBAppException(
-                        "Expected type " + expectedType + " for column '" + columnName +
-                                "' but found " + actualType);
+                    "Expected type " + columnTypes.get(columnName) + " for column '" + columnName);
             }
 
             Object min = columnMin.get(columnName);
@@ -251,7 +257,7 @@ public class Table {
 
             if (dataType.compare(value, min) < 0 || dataType.compare(value, max) > 0) {
                 throw new DBAppException(
-                        "Value for column '" + columnName + "' must be between " + min + " and " + max);
+                    "Value for column '" + columnName + "' must be between " + min + " and " + max);
             }
         }
     }
@@ -290,12 +296,12 @@ public class Table {
     }
 
     private void deleteUsingClusteringKey(Hashtable<String, Object> searchValues) throws
-            DBAppException {
+        DBAppException {
         int pageIndex = Util.binarySearch(
-                pagesIndex,
-                searchValues.get(clusteringKeyColumn),
-                (pageIndexItem) -> pageIndexItem.pageMin,
-                dataTypes.get(columnTypes.get(clusteringKeyColumn))
+            pagesIndex,
+            searchValues.get(clusteringKeyColumn),
+            (pageIndexItem) -> pageIndexItem.pageMin,
+            dataTypes.get(columnTypes.get(clusteringKeyColumn))
         );
 
         if (pageIndex < 0) {
@@ -336,18 +342,46 @@ public class Table {
         if (sqlTerm._strOperator.equals("=")) {
             return new Range(sqlTerm._strColumnName, value, value, dataType);
         } else if (sqlTerm._strOperator.equals(">")) {
-            return new Range(sqlTerm._strColumnName, value, columnMax.get(columnName), dataType, false, true);
+            return new Range(
+                sqlTerm._strColumnName,
+                value,
+                columnMax.get(columnName),
+                dataType,
+                false,
+                true
+            );
         } else if (sqlTerm._strOperator.equals(">=")) {
             return new Range(sqlTerm._strColumnName, value, columnMax.get(columnName), dataType);
         } else if (sqlTerm._strOperator.equals("<")) {
-            return new Range(sqlTerm._strColumnName, columnMin.get(columnName), value, dataType, true, false);
+            return new Range(
+                sqlTerm._strColumnName,
+                columnMin.get(columnName),
+                value,
+                dataType,
+                true,
+                false
+            );
         } else if (sqlTerm._strOperator.equals("<=")) {
             return new Range(sqlTerm._strColumnName, columnMin.get(columnName), value, dataType);
         } else if (sqlTerm._strOperator.equals("!=")) {
             return new BinaryExpression(
-                    new Range(sqlTerm._strColumnName, columnMin.get(columnName), value, dataType, true, false),
-                    new Range(sqlTerm._strColumnName, value, columnMax.get(columnName), dataType, false, true),
-                    "or"
+                new Range(
+                    sqlTerm._strColumnName,
+                    columnMin.get(columnName),
+                    value,
+                    dataType,
+                    true,
+                    false
+                ),
+                new Range(
+                    sqlTerm._strColumnName,
+                    value,
+                    columnMax.get(columnName),
+                    dataType,
+                    false,
+                    true
+                ),
+                "or"
             );
         } else {
             throw new DBAppException("Invalid operator " + sqlTerm._strOperator);
@@ -372,5 +406,145 @@ public class Table {
 
     public Hashtable<String, Object> getColumnMax() {
         return columnMax;
+    }
+
+    public boolean isIndexed(String columnName) {
+        return indexNames.containsKey(columnName);
+    }
+
+    public String getIndexName(String columnName) {
+        return indexNames.get(columnName);
+    }
+
+    public String getIndexType(String columnName) {
+        return indexTypes.get(columnName);
+    }
+
+    public Object getColumnMin(String columnName) {
+        return columnMin.get(columnName);
+    }
+
+    public Object getColumnMax(String columnName) {
+        return columnMax.get(columnName);
+    }
+
+    public void createIndex(String name, String type, String[] columns) throws DBAppException {
+        if (indexNames.containsValue(name)) {
+            throw new DBAppException("Index name " + name + " already exists");
+        }
+
+        for (String column : columns) {
+            if (!columnTypes.containsKey(column)) {
+                throw new DBAppException("Column " + column + " not found");
+            }
+
+            if (indexNames.containsKey(column)) {
+                throw new DBAppException("Column " + column + " already indexed");
+            }
+
+            this.indexNames.put(column, name);
+            this.indexTypes.put(column, type);
+        }
+
+
+        Index index = indexManager.createIndex(name, type, this, columns);
+        Iterator<Row> iterator = iterator();
+
+        while (iterator.hasNext()) {
+            Row row = iterator.next();
+            index.insert(row);
+        }
+
+        indexManager.saveIndex(index);
+    }
+
+    public Iterator<Row> iterator() {
+        return new TableIterator(this, pageManager);
+    }
+
+    public DataType getDataType(String columnName) {
+        return dataTypes.get(columnTypes.get(columnName));
+    }
+
+    public String getIndexForSqlTerms(SQLTerm[] sqlTerms, String[] operators) {
+        if (sqlTerms.length == 0) {
+            return null;
+        }
+
+        for (String operator : operators) {
+            if (!operator.equalsIgnoreCase("AND")) {
+                return null;
+            }
+        }
+
+        String bestIndex = null;
+        Hashtable<String, Integer> indexColumnCount = new Hashtable<>();
+
+        for (SQLTerm sqlTerm : sqlTerms) {
+            String columnName = sqlTerm._strColumnName;
+            String indexName = indexNames.get(columnName);
+
+            if (indexName != null && !sqlTerm._strOperator.equals("!=")) {
+                indexColumnCount.put(indexName, indexColumnCount.getOrDefault(indexName, 0) + 1);
+
+                if (bestIndex == null ||
+                    indexColumnCount.get(indexName) > indexColumnCount.get(bestIndex)) {
+                    bestIndex = indexName;
+                }
+            }
+        }
+
+        return bestIndex;
+    }
+
+    public Expression getExpression(SQLTerm[] sqlTerms, String[] operators) throws DBAppException {
+        Expression expression = sqlTermToExpression(sqlTerms[0]);
+        for (int i = 1; i < sqlTerms.length; i++) {
+            expression = new BinaryExpression(
+                expression,
+                sqlTermToExpression(sqlTerms[i]),
+                operators[i - 1]
+            );
+        }
+        return expression;
+    }
+
+    public Iterator<Row> selectFromTableLinear(
+        SQLTerm[] sqlTerms,
+        String[] operators
+    ) throws
+        DBAppException {
+        Iterator<Row> tableIterator = iterator();
+        Expression expression = getExpression(sqlTerms, operators);
+
+        return new FilterIterator(tableIterator, expression);
+    }
+
+    public Iterator<Row> selectFromTableIndexed(
+        SQLTerm[] sqlTerms,
+        String[] operators,
+        String indexName
+    ) throws DBAppException {
+        Index index = indexManager.loadIndex(indexName, tableName);
+        Vector<Range> ranges = new Vector<>();
+        for (SQLTerm sqlTerm : sqlTerms) {
+            if (!Objects.equals(sqlTerm._strOperator, "!=") &&
+                getIndexName(sqlTerm._strColumnName).equals(indexName)) {
+                ranges.add((Range) sqlTermToExpression(sqlTerm));
+            }
+        }
+
+        return new FilterIterator(
+            new RowsIterator(index.find(ranges), pageManager),
+            getExpression(sqlTerms, operators)
+        );
+    }
+
+    public Iterator<Row> select(SQLTerm[] sqlTerms, String[] operators) throws DBAppException {
+        String indexName = getIndexForSqlTerms(sqlTerms, operators);
+
+        return indexName != null
+            ? selectFromTableIndexed(sqlTerms, operators, indexName)
+            : selectFromTableLinear(sqlTerms, operators);
     }
 }

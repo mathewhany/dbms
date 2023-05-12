@@ -2,6 +2,8 @@ package dbms;
 
 import dbms.pages.Row;
 
+import java.util.Hashtable;
+
 public class BinaryExpression implements Expression {
     private final Expression left;
     private final Expression right;
@@ -22,6 +24,20 @@ public class BinaryExpression implements Expression {
                 return left.evaluate(row) || right.evaluate(row);
             case "xor":
                 return left.evaluate(row) ^ right.evaluate(row);
+            default:
+                throw new RuntimeException("Unknown operator: " + operator);
+        }
+    }
+
+    @Override
+    public boolean evaluate(Hashtable<String, Range> ranges) {
+        switch (operator.toLowerCase()) {
+            case "and":
+                return left.evaluate(ranges) && right.evaluate(ranges);
+            case "or":
+                return left.evaluate(ranges) || right.evaluate(ranges);
+            case "xor":
+                return left.evaluate(ranges) ^ right.evaluate(ranges);
             default:
                 throw new RuntimeException("Unknown operator: " + operator);
         }

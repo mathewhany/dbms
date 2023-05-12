@@ -4,10 +4,11 @@ import dbms.config.Config;
 import dbms.config.ConfigManager;
 import dbms.config.PropertiesConfigManager;
 import dbms.datatype.*;
+import dbms.indicies.IndexFactory;
 import dbms.indicies.IndexManager;
+import dbms.indicies.OctreeFactory;
 import dbms.indicies.SerializedIndexManager;
-import dbms.iterators.FilterIterator;
-import dbms.iterators.TableIterator;
+import dbms.iterators.RowToHashtableIterator;
 import dbms.pages.*;
 import dbms.tables.CsvTableManager;
 import dbms.tables.Table;
@@ -56,14 +57,21 @@ public class DBApp {
         }
 
         try {
-            indexManager = new SerializedIndexManager(INDEX_DIR);
+            Hashtable<String, IndexFactory> indexFactory = new Hashtable<>();
+            indexFactory.put("Octree", new OctreeFactory(config));
+            indexManager = new SerializedIndexManager(INDEX_DIR, indexFactory);
         } catch (DBAppException e) {
-            e.printStackTrace();
             System.out.println("Failed to load index manager");
         }
 
         try {
-            tableManager = new CsvTableManager(METADATA_FILE_PATH, config, pageManager, dataTypes, indexManager);
+            tableManager = new CsvTableManager(
+                METADATA_FILE_PATH,
+                config,
+                pageManager,
+                dataTypes,
+                indexManager
+            );
         } catch (DBAppException e) {
             System.out.println("Failed to load table manager");
         }
@@ -120,7 +128,13 @@ public class DBApp {
     public void createIndex(
         String tableName, String[] columnNames
     ) throws DBAppException {
+        Table table = loadTable(tableName);
+        String indexName = String.join("", columnNames) + "Index";
+        table.createIndex(indexName, "Octree", columnNames);
+        tableManager.saveTable(table);
 
+        table = null;
+        System.gc();
     }
 
     /**
@@ -192,20 +206,20 @@ public class DBApp {
      * @throws DBAppException
      */
     public Iterator selectFromTable(SQLTerm[] sqlTerms, String[] operators) throws DBAppException {
-        String tableName = sqlTerms[0]._strTableName;
-        Table table = loadTable(tableName);
-        TableIterator tableIterator = new TableIterator(table, pageManager);
-
-        Expression expression = table.sqlTermToExpression(sqlTerms[0]);
-        for (int i = 1; i < sqlTerms.length; i++) {
-            expression = new BinaryExpression(
-                expression,
-                table.sqlTermToExpression(sqlTerms[i]),
-                operators[i - 1]
-            );
+        if (sqlTerms.length == 0) {
+            throw new DBAppException("No conditions were passed");
         }
 
-        return new FilterIterator(tableIterator, expression);
+        if (operators.length != sqlTerms.length - 1) {
+            throw new DBAppException(
+                "Number of operators must be one less than the number of conditions");
+        }
+
+        String tableName = sqlTerms[0]._strTableName;
+        Table table = loadTable(tableName);
+        Iterator<Row> iterator = table.select(sqlTerms, operators);
+
+        return new RowToHashtableIterator(iterator);
     }
 
     public Table loadTable(String tableName) throws DBAppException {

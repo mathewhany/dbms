@@ -79,8 +79,13 @@ public class CsvTableManager implements TableManager {
             columnTypes.put(columnName, tableColumn.get(HEADER_COLUMN_TYPE));
             columnMin.put(columnName, tableColumn.get(HEADER_COLUMN_MIN));
             columnMax.put(columnName, tableColumn.get(HEADER_COLUMN_MAX));
-            columnIndexName.put(columnName, tableColumn.get(HEADER_INDEX_NAME));
-            columnIndexType.put(columnName, tableColumn.get(HEADER_INDEX_TYPE));
+            String indexName = tableColumn.get(HEADER_INDEX_NAME);
+            String indexType = tableColumn.get(HEADER_INDEX_TYPE);
+
+            if (!indexName.equals(NULL)) {
+                columnIndexName.put(columnName, indexName);
+                columnIndexType.put(columnName, indexType);
+            }
 
             if (tableColumn.get(HEADER_CLUSTERING_KEY).equals(TRUE)) {
                 clusteringKey = columnName;
@@ -139,6 +144,30 @@ public class CsvTableManager implements TableManager {
             row.put(HEADER_COLUMN_MIN, dataType.toString(columnMin.get(columnName)));
             row.put(HEADER_COLUMN_MAX, dataType.toString(columnMax.get(columnName)));
             tableRows.add(row);
+        }
+
+        CsvLoader.save(metadataFilePath, tableRows);
+    }
+
+    @Override
+    public void saveTable(Table table) throws DBAppException {
+        Vector<Hashtable<String, String>> tableRows = CsvLoader.load(metadataFilePath);
+        boolean found = false;
+
+        for (Hashtable<String, String> row : tableRows) {
+            if (row.get(HEADER_TABLE_NAME).equals(table.getTableName())) {
+                found = true;
+                String columnName = row.get(HEADER_COLUMN_NAME);
+                String indexName = table.getIndexName(columnName);
+                String indexType = table.getIndexType(columnName);
+
+                row.put(HEADER_INDEX_NAME, indexName == null ? NULL : indexName);
+                row.put(HEADER_INDEX_TYPE, indexType == null ? NULL : indexType);
+            }
+        }
+
+        if (!found) {
+            throw new DBAppException("Table not found: " + table.getTableName());
         }
 
         CsvLoader.save(metadataFilePath, tableRows);

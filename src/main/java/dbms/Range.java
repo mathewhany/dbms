@@ -3,7 +3,10 @@ package dbms;
 import dbms.datatype.DataType;
 import dbms.pages.Row;
 
-public class Range implements Expression {
+import java.io.Serializable;
+import java.util.Hashtable;
+
+public class Range implements Expression, Serializable {
     private final String columnName;
 
     private final Object start;
@@ -14,7 +17,7 @@ public class Range implements Expression {
     private final boolean isStartInclusive;
     private final boolean isEndInclusive;
 
-    public Range(String columnName, Object start, Object end, DataType type) {
+    public Range(String columnName, Object start, Object end, DataType type) throws DBAppException {
         this(columnName, start, end, type, true, true);
     }
 
@@ -25,7 +28,11 @@ public class Range implements Expression {
         DataType type,
         boolean isStartInclusive,
         boolean isEndInclusive
-    ) {
+    ) throws DBAppException {
+        if (!type.isValidObject(start) || !type.isValidObject(end)) {
+            throw new DBAppException("Invalid data type for range over column " + columnName);
+        }
+
         this.columnName = columnName;
         this.start = start;
         this.end = end;
@@ -58,8 +65,12 @@ public class Range implements Expression {
         Object mid = getMid();
 
         Range[] ranges = new Range[2];
-        ranges[0] = new Range(columnName, start, mid, type, isStartInclusive, false);
-        ranges[1] = new Range(columnName, mid, end, type, true, isEndInclusive);
+        try {
+            ranges[0] = new Range(columnName, start, mid, type, isStartInclusive, false);
+            ranges[1] = new Range(columnName, mid, end, type, true, isEndInclusive);
+        } catch (DBAppException e) {
+            // This should never happen
+        }
 
         return ranges;
     }
@@ -97,7 +108,16 @@ public class Range implements Expression {
         return contains(value);
     }
 
+    @Override
+    public boolean evaluate(Hashtable<String, Range> ranges) {
+        return ranges.get(columnName).intersects(this);
+    }
+
     public String getColumnName() {
         return columnName;
+    }
+
+    public DataType getType() {
+        return type;
     }
 }
