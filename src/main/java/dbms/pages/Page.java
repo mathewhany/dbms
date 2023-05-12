@@ -107,8 +107,16 @@ public class Page implements Serializable {
         return new UpdatedRow(oldRow, requiredRow);
     }
 
-    public Vector deleteBinarySearch(Hashtable<String, Object> searchValues) {
-        Vector<row> reqRows = new Vector<>();
+    public Vector<Row> delete(Hashtable<String, Object> searchValues) {
+        if (searchValues.containsKey(clusteringKeyColumnName)) {
+            return deleteBinarySearch(searchValues);
+        } else {
+            return deleteLinearSearch(searchValues);
+        }
+    }
+
+    private Vector<Row> deleteBinarySearch(Hashtable<String, Object> searchValues) {
+        Vector<Row> deletedRows = new Vector<>();
         Object clusteringKeyValue = searchValues.get(clusteringKeyColumnName);
         int index = Util.binarySearch(
             rows,
@@ -118,22 +126,22 @@ public class Page implements Serializable {
         );
 
         if (index < 0) {
-            return;
+            return deletedRows;
         }
 
         Row requiredRow = rows.get(index);
 
-        if (!matches(requiredRow, searchValues)) return;
+        if (!matches(requiredRow, searchValues)) return deletedRows;
 
-        reqRows.add(requiredRow);
+        deletedRows.add(requiredRow);
 
         rows.remove(index);
 
-        return reqRows;
+        return deletedRows;
     }
 
-    public Vector deleteLinearSearch(Hashtable<String, Object> searchValues) {
-        Vector<row> reqRows = new Vector<>();
+    private Vector<Row> deleteLinearSearch(Hashtable<String, Object> searchValues) {
+        Vector<Row> deletedRows = new Vector<>();
         Vector<Integer> matchingIndices = new Vector<>();
 
         for (int i = 0; i < rows.size(); i++) {
@@ -141,14 +149,14 @@ public class Page implements Serializable {
 
             if (matches(requiredRow, searchValues)) {
                 matchingIndices.add(i);
-                reqRows.add(requiredRow);
+                deletedRows.add(requiredRow);
             }
         }
 
         for (int i = matchingIndices.size() - 1; i >= 0; i--) {
             rows.remove(matchingIndices.get(i).intValue());
         }
-        return reqRows;
+        return deletedRows;
     }
 
     private boolean matches(Row row, Hashtable<String, Object> searchValues) {

@@ -113,12 +113,7 @@ public class Table {
         }
 
         Row currentRow = new Row(row, clusteringKeyColumn);
-        Hashtable<String, Index> indices = new Hashtable<>();
-        for (String indexName : indexNames.values()) {
-            if (!indices.contains(indexName)) {
-                indices.put(indexName, indexManager.loadIndex(indexName, tableName));
-            }
-        }
+        Hashtable<String, Index> indices = loadAllIndices();
         DataType clusteringKeyType = dataTypes.get(columnTypes.get(clusteringKeyColumn));
         // Binary search index of dbms.pages
         int searchRes = Util.binarySearch(
@@ -269,101 +264,105 @@ public class Table {
         this.pagesIndex = pagesIndex;
     }
 
-    public void delete(Hashtable<String, Object> searchValues) throws DBAppException {
-        Hashtable<String, Index> indicies = new Hashtable<>();
-        for (String indexName : indexNames.value()) {
-            if (!indicies.contains(indexName)) {
-                indices.put(indexName, indexManager.loadIndex(indexName, tableName));
-            }
-        }
-        validate(searchValues);
 
-        Hashtable<String, int> matching = new Hashtable<>();
-        String maxIndex;
-        for (String searchIndex : searchValues.keySet()) {
-            if (indices.containsKey(searchIndex)) {
-                matching.put(searchIndex, matching.get(searchIndex, 0) + 1);
+    private String getBestIndexForColumns(
+        Collection<String> columns
+    ) {
+        String bestIndex = null;
+        Hashtable<String, Integer> counts = new Hashtable<>();
 
-                if (maxIndex == null || matching.get(searchIndex) > matching.get(maxIndex)) {
-                    maxIndex = searchIndex
+        for (String column : columns) {
+            String indexName = indexNames.get(column);
+
+            if (indexName != null) {
+                counts.put(indexName, counts.getOrDefault(indexName, 0) + 1);
+
+                if (bestIndex == null || counts.get(indexName) > counts.get(bestIndex)) {
+                    bestIndex = indexName;
                 }
             }
         }
 
+        return bestIndex;
+    }
+
+    public void delete(Hashtable<String, Object> searchValues) throws DBAppException {
+        validate(searchValues);
+        Hashtable<String, Index> indices = loadAllIndices();
+        String maxIndex = getBestIndexForColumns(searchValues.keySet());
+
+        Vector<Row> deletedRows;
 
         if (maxIndex != null) {
-            deleteUsingIndex(searchValues, indicies.get(maxIndex));
+            deletedRows = deleteUsingIndex(searchValues, indices.get(maxIndex));
         } else if (searchValues.containsKey(clusteringKeyColumn)) {
-            deleteUsingClusteringKey(searchValues);
+            deletedRows = deleteUsingClusteringKey(searchValues);
         } else {
-            linearDelete(searchValues);
+            deletedRows = linearDelete(searchValues);
+        }
+
+        for (Index index : indices.values()) {
+            for (Row row : deletedRows) {
+                index.delete(row);
+            }
+            indexManager.saveIndex(index);
         }
     }
 
-    private void deleteUsingIndex(Hashtable<String, Object> searchValues, Index maxIndex) throws DBAppException {
-        Hashtable<String, Index> indicies = new Hashtable<>();
-        for (String indexName : indexNames.value()) {
-            if (!indicies.contains(indexName)) {
+    private Hashtable<String, Index> loadAllIndices() throws DBAppException {
+        Hashtable<String, Index> indices = new Hashtable<>();
+        for (String indexName : indexNames.values()) {
+            if (!indices.contains(indexName)) {
                 indices.put(indexName, indexManager.loadIndex(indexName, tableName));
             }
         }
-        Vector<row> allRows = new Vector<>();
-        Hashtable<String, Object> deleteValues = new Hashtable<>();
-        for (String column : indexNames.keySet())
-            if (indexNames.get(column).equals(maxIndex.getName()))
-                deleteValues.put(column, searchValues.get(column));
-        Iterator<String> deletePages = maxIndex.findExact(deleteValues);
-        while (deletePages.hasNext()) {
-            Page page = pageManager.loadPage(deletePages.Next());
-            if (searchValues.containsKey(clusteringKeyColumn))
-                Vector<row> reqRows = page.deleteUsingClusteringKey(searchValues);
-            else
-                Vector<row> reqRows = page.linearDelete(searchValues);
-            allRows.addAll(reqRows);
-            for (int i = 0;i<pagesIndex.length();i++)
-                if (pagesIndex.get(i).pageId.equals(page.get(pageId))) {
-                    deletePageOrSave(i, page);
-                    page = null;
-                }
-        }
-        for (Index index : indices.values())
-                for (row r : allRows)
-                    index.delete(r);
-        System.gc();
+        return indices;
     }
 
-    private void linearDelete(Hashtable<String, Object> searchValues) throws DBAppException {
-        Hashtable<String, Index> indicies = new Hashtable<>();
-        for (String indexName : indexNames.value()) {
-            if (!indicies.contains(indexName)) {
-                indices.put(indexName, indexManager.loadIndex(indexName, tableName));
+    private Vector<Row> deleteUsingIndex(Hashtable<String, Object> searchValues, Index index) throws DBAppException {
+        Hashtable<String, Object> indexSearchValues = new Hashtable<>();
+        for (String searchColumn : searchValues.keySet()) {
+            String indexName = indexNames.get(searchColumn);
+            if (indexName != null && indexName.equals(index.getName())) {
+                indexSearchValues.put(searchColumn, searchValues.get(searchColumn));
             }
         }
+
+        Vector<Row> allRows = new Vector<>();
+        Iterator<String> pages = index.findExact(indexSearchValues);
+        while (pages.hasNext()) {
+            Page page = pageManager.loadPage(pages.next());
+            allRows.addAll(page.delete(searchValues));
+            pageManager.savePage(page);
+            deletePageOrSave(page);
+            page = null;
+            System.gc();
+        }
+
+        return allRows;
+    }
+
+    private Vector<Row> linearDelete(Hashtable<String, Object> searchValues) throws DBAppException {
+        Vector<Row> deletedRows = new Vector<>();
+
         for (int i = 0; i < pagesIndex.size(); i++) {
             PageIndexItem pageIndexItem = pagesIndex.get(i);
             Page page = pageManager.loadPage(pageIndexItem.pageId);
-            Vector<row> reqRows = page.deleteLinearSearch(searchValues);
-            for (Index index : indices.values())
-                for (row r : reqRows)
-                    index.delete(r);
+            deletedRows.addAll(page.delete(searchValues));
 
-            if (deletePageOrSave(i, page)) {
+            if (deletePageOrSave(page)) {
                 i--;
             }
 
             page = null;
             System.gc();
         }
+
+        return deletedRows;
     }
 
-    private void deleteUsingClusteringKey(Hashtable<String, Object> searchValues) throws
+    private Vector<Row> deleteUsingClusteringKey(Hashtable<String, Object> searchValues) throws
         DBAppException {
-        Hashtable<String, Index> indicies = new Hashtable<>();
-        for (String indexName : indexNames.value()) {
-            if (!indicies.contains(indexName)) {
-                  indices.put(indexName, indexManager.loadIndex(indexName, tableName));
-            }
-        }
         int pageIndex = Util.binarySearch(
             pagesIndex,
             searchValues.get(clusteringKeyColumn),
@@ -372,23 +371,34 @@ public class Table {
         );
 
         if (pageIndex < 0) {
-            return;
+            return new Vector<>();
         }
 
         PageIndexItem pageIndexItem = pagesIndex.get(pageIndex);
         Page page = pageManager.loadPage(pageIndexItem.pageId);
-        Vector<row> reqRows = page.deleteBinarySearch(searchValues);
-        for (Index index : indices.values())
-            for (row r : reqRows)
-                index.delete(r);
+        Vector<Row> deletedRows = page.delete(searchValues);
 
-        deletePageOrSave(pageIndex, page);
+        deletePageOrSave(page);
 
         page = null;
         System.gc();
+
+        return deletedRows;
     }
 
-    private boolean deletePageOrSave(int idx, Page page) throws DBAppException {
+    private boolean deletePageOrSave(Page page) throws DBAppException {
+        int idx = -1;
+        for (int i = 0; i < pagesIndex.size(); i++) {
+            if (pagesIndex.get(i).pageId.equals(page.getPageId())) {
+                idx = i;
+                break;
+            }
+        }
+
+        if (idx == -1) {
+            throw new DBAppException("Page not found in pages index");
+        }
+
         PageIndexItem pageIndexItem = pagesIndex.get(idx);
 
         if (page.getRows().size() == 0) {
@@ -547,24 +557,14 @@ public class Table {
             }
         }
 
-        String bestIndex = null;
-        Hashtable<String, Integer> indexColumnCount = new Hashtable<>();
-
+        Vector<String> columns = new Vector<>();
         for (SQLTerm sqlTerm : sqlTerms) {
-            String columnName = sqlTerm._strColumnName;
-            String indexName = indexNames.get(columnName);
-
-            if (indexName != null && !sqlTerm._strOperator.equals("!=")) {
-                indexColumnCount.put(indexName, indexColumnCount.getOrDefault(indexName, 0) + 1);
-
-                if (bestIndex == null ||
-                    indexColumnCount.get(indexName) > indexColumnCount.get(bestIndex)) {
-                    bestIndex = indexName;
-                }
+            if (!sqlTerm._strOperator.equals("!=")) {
+                columns.add(sqlTerm._strColumnName);
             }
         }
 
-        return bestIndex;
+        return getBestIndexForColumns(columns);
     }
 
     public Expression getExpression(SQLTerm[] sqlTerms, String[] operators) throws DBAppException {
