@@ -12,7 +12,6 @@ import dbms.util.Util;
 import dbms.config.Config;
 import dbms.datatype.DataType;
 
-import javax.xml.crypto.Data;
 import java.util.*;
 
 public class Table {
@@ -271,20 +270,82 @@ public class Table {
     }
 
     public void delete(Hashtable<String, Object> searchValues) throws DBAppException {
+        Hashtable<String, Index> indicies = new Hashtable<>();
+        for (String indexName : indexNames.value()) {
+            if (!indicies.contains(indexName)) {
+                indices.put(indexName, indexManager.loadIndex(indexName, tableName));
+            }
+        }
         validate(searchValues);
 
-        if (searchValues.containsKey(clusteringKeyColumn)) {
+        Hashtable<String, int> matching = new Hashtable<>();
+        String maxIndex;
+        for (String searchIndex : searchValues.keySet()) {
+            if (indices.containsKey(searchIndex)) {
+                matching.put(searchIndex, matching.get(searchIndex, 0) + 1);
+
+                if (maxIndex == null || matching.get(searchIndex) > matching.get(maxIndex)) {
+                    maxIndex = searchIndex
+                }
+            }
+        }
+
+
+        if (maxIndex != null) {
+            deleteUsingIndex(searchValues, indicies.get(maxIndex));
+        } else if (searchValues.containsKey(clusteringKeyColumn)) {
             deleteUsingClusteringKey(searchValues);
         } else {
             linearDelete(searchValues);
         }
     }
 
+    private void deleteUsingIndex(Hashtable<String, Object> searchValues, Index maxIndex) throws DBAppException {
+        Hashtable<String, Index> indicies = new Hashtable<>();
+        for (String indexName : indexNames.value()) {
+            if (!indicies.contains(indexName)) {
+                indices.put(indexName, indexManager.loadIndex(indexName, tableName));
+            }
+        }
+        Vector<row> allRows = new Vector<>();
+        Hashtable<String, Object> deleteValues = new Hashtable<>();
+        for (String column : indexNames.keySet())
+            if (indexNames.get(column).equals(maxIndex.getName()))
+                deleteValues.put(column, searchValues.get(column));
+        Iterator<String> deletePages = maxIndex.findExact(deleteValues);
+        while (deletePages.hasNext()) {
+            Page page = pageManager.loadPage(deletePages.Next());
+            if (searchValues.containsKey(clusteringKeyColumn))
+                Vector<row> reqRows = page.deleteUsingClusteringKey(searchValues);
+            else
+                Vector<row> reqRows = page.linearDelete(searchValues);
+            allRows.addAll(reqRows);
+            for (int i = 0;i<pagesIndex.length();i++)
+                if (pagesIndex.get(i).pageId.equals(page.get(pageId))) {
+                    deletePageOrSave(i, page);
+                    page = null;
+                }
+        }
+        for (Index index : indices.values())
+                for (row r : allRows)
+                    index.delete(r);
+        System.gc();
+    }
+
     private void linearDelete(Hashtable<String, Object> searchValues) throws DBAppException {
+        Hashtable<String, Index> indicies = new Hashtable<>();
+        for (String indexName : indexNames.value()) {
+            if (!indicies.contains(indexName)) {
+                indices.put(indexName, indexManager.loadIndex(indexName, tableName));
+            }
+        }
         for (int i = 0; i < pagesIndex.size(); i++) {
             PageIndexItem pageIndexItem = pagesIndex.get(i);
             Page page = pageManager.loadPage(pageIndexItem.pageId);
-            page.deleteLinearSearch(searchValues);
+            Vector<row> reqRows = page.deleteLinearSearch(searchValues);
+            for (Index index : indices.values())
+                for (row r : reqRows)
+                    index.delete(r);
 
             if (deletePageOrSave(i, page)) {
                 i--;
@@ -297,6 +358,12 @@ public class Table {
 
     private void deleteUsingClusteringKey(Hashtable<String, Object> searchValues) throws
         DBAppException {
+        Hashtable<String, Index> indicies = new Hashtable<>();
+        for (String indexName : indexNames.value()) {
+            if (!indicies.contains(indexName)) {
+                  indices.put(indexName, indexManager.loadIndex(indexName, tableName));
+            }
+        }
         int pageIndex = Util.binarySearch(
             pagesIndex,
             searchValues.get(clusteringKeyColumn),
@@ -310,7 +377,10 @@ public class Table {
 
         PageIndexItem pageIndexItem = pagesIndex.get(pageIndex);
         Page page = pageManager.loadPage(pageIndexItem.pageId);
-        page.deleteBinarySearch(searchValues);
+        Vector<row> reqRows = page.deleteBinarySearch(searchValues);
+        for (Index index : indices.values())
+            for (row r : reqRows)
+                index.delete(r);
 
         deletePageOrSave(pageIndex, page);
 

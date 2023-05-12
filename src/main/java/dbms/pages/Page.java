@@ -107,7 +107,8 @@ public class Page implements Serializable {
         return new UpdatedRow(oldRow, requiredRow);
     }
 
-    public void deleteBinarySearch(Hashtable<String, Object> searchValues) {
+    public Vector deleteBinarySearch(Hashtable<String, Object> searchValues) {
+        Vector<row> reqRows = new Vector<>();
         Object clusteringKeyValue = searchValues.get(clusteringKeyColumnName);
         int index = Util.binarySearch(
             rows,
@@ -124,10 +125,15 @@ public class Page implements Serializable {
 
         if (!matches(requiredRow, searchValues)) return;
 
+        reqRows.add(requiredRow);
+
         rows.remove(index);
+
+        return reqRows;
     }
 
-    public void deleteLinearSearch(Hashtable<String, Object> searchValues) {
+    public Vector deleteLinearSearch(Hashtable<String, Object> searchValues) {
+        Vector<row> reqRows = new Vector<>();
         Vector<Integer> matchingIndices = new Vector<>();
 
         for (int i = 0; i < rows.size(); i++) {
@@ -135,12 +141,14 @@ public class Page implements Serializable {
 
             if (matches(requiredRow, searchValues)) {
                 matchingIndices.add(i);
+                reqRows.add(requiredRow);
             }
         }
 
         for (int i = matchingIndices.size() - 1; i >= 0; i--) {
             rows.remove(matchingIndices.get(i).intValue());
         }
+        return reqRows;
     }
 
     private boolean matches(Row row, Hashtable<String, Object> searchValues) {
