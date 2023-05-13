@@ -4,10 +4,12 @@ import dbms.*;
 import dbms.indicies.Index;
 import dbms.indicies.IndexManager;
 import dbms.iterators.FilterIterator;
-import dbms.iterators.RowToHashtableIterator;
 import dbms.iterators.RowsIterator;
 import dbms.iterators.TableIterator;
 import dbms.pages.*;
+import dbms.util.BinaryExpression;
+import dbms.util.Expression;
+import dbms.util.Range;
 import dbms.util.Util;
 import dbms.config.Config;
 import dbms.datatype.DataType;
@@ -95,7 +97,7 @@ public class Table {
         }
 
         PageIndexItem lastPageIndexItem = pagesIndex.lastElement();
-        int lastPageIndex = Integer.parseInt(lastPageIndexItem.pageId.split("_")[1]);
+        int lastPageIndex = Integer.parseInt(lastPageIndexItem.getPageId().split("_")[1]);
 
         return tableName + "_" + (lastPageIndex + 1);
     }
@@ -119,7 +121,7 @@ public class Table {
         int searchRes = Util.binarySearch(
             pagesIndex,
             currentRow.getClusteringKeyValue(),
-            (pageIndexItem) -> pageIndexItem.pageMin,
+            PageIndexItem::getPageMin,
             clusteringKeyType
         );
         int index = Math.max(searchRes, 0);
@@ -148,17 +150,18 @@ public class Table {
             }
 
             PageIndexItem pageIndex = pagesIndex.get(index);
-            Page page = pageManager.loadPage(pageIndex.pageId);
+            Page page = pageManager.loadPage(pageIndex.getPageId());
             Row returnedRow = page.insert(currentRow);
             pageManager.savePage(page);
-            pageIndex.pageMin = page.getRows().get(0).getClusteringKeyValue();
+            pageIndex.setPageMin(page.getRows().get(0).getClusteringKeyValue());
             page = null;
             System.gc();
 
-            if (returnedRow == null || clusteringKeyType.compare(
-                returnedRow.getClusteringKeyValue(),
-                currentRow.getClusteringKeyValue()
-            ) != 0) {
+            if (returnedRow == null ||
+                clusteringKeyType.compare(
+                    returnedRow.getClusteringKeyValue(),
+                    currentRow.getClusteringKeyValue()
+                ) != 0) {
                 for (Index tableIndex : indices.values()) {
                     tableIndex.insert(currentRow);
                 }
@@ -186,48 +189,58 @@ public class Table {
             throw new DBAppException("Cannot update clustering key column");
         }
 
-        Hashtable<String, Index> indices = new Hashtable<>();
-        for (String columnName : newValues.keySet()) {
-            String indexName = indexNames.get(columnName);
-            if (indexName != null && !indices.contains(indexName)) {
-                indices.put(indexName, indexManager.loadIndex(indexName, tableName));
-            }
-        }
-
-        String clusteringKeyType = columnTypes.get(clusteringKeyColumn);
-        DataType clusteringKeyDataType = dataTypes.get(clusteringKeyType);
+        DataType clusteringKeyDataType = getDataType(clusteringKeyColumn);
         Object clusterKeyValueObj = clusteringKeyDataType.parse(clusteringKeyValue);
 
-        int searchRes = Util.binarySearch(
-            pagesIndex,
-            clusterKeyValueObj,
-            (pageIndex) -> pageIndex.pageMin,
-            clusteringKeyDataType
-        );
+        String clusteringKeyIndexName = indexNames.get(clusteringKeyColumn);
+        Vector<String> pagesToUpdate = new Vector<>();
 
-        if (searchRes < 0) {
+        if (clusteringKeyIndexName != null) {
+            Index clusteringKeyIndex = indexManager.loadIndex(clusteringKeyIndexName, tableName);
+            Hashtable<String, Object> clusteringKeySearch = new Hashtable<>();
+            clusteringKeySearch.put(clusteringKeyColumn, clusterKeyValueObj);
+            Iterator<String> clusteringKeySearchIterator =
+                clusteringKeyIndex.findExact(clusteringKeySearch);
+            while (clusteringKeySearchIterator.hasNext()) {
+                pagesToUpdate.add(clusteringKeySearchIterator.next());
+            }
+        } else {
+            int searchRes = Util.binarySearch(
+                pagesIndex,
+                clusterKeyValueObj,
+                PageIndexItem::getPageMin,
+                clusteringKeyDataType
+            );
+
+            if (searchRes < 0) {
 //            throw new DBAppException(
 //                "Row with clustering key " + clusteringKeyValue + " not found");
-            // https://piazza.com/class/lel8rsvwc4e7j6/post/158
-            return;
+                // https://piazza.com/class/lel8rsvwc4e7j6/post/158
+                return;
+            }
+            PageIndexItem pageIndex = pagesIndex.get(searchRes);
+            pagesToUpdate.add(pageIndex.getPageId());
         }
 
-        PageIndexItem pageIndex = pagesIndex.get(searchRes);
-        Page page = pageManager.loadPage(pageIndex.pageId);
-        UpdatedRow updatedRow = page.update(clusterKeyValueObj, newValues);
-        pageManager.savePage(page);
 
-        page = null;
-        System.gc();
+        for (String pageId : pagesToUpdate) {
+            Page page = pageManager.loadPage(pageId);
+            UpdatedRow updatedRow = page.update(clusterKeyValueObj, newValues);
+            pageManager.savePage(page);
 
-        if (updatedRow == null) {
-            return;
-        }
+            page = null;
+            System.gc();
 
-        for (Index index : indices.values()) {
-            index.delete(updatedRow.getOldRow());
-            index.insert(updatedRow.getUpdatedRow());
-            indexManager.saveIndex(index);
+            if (updatedRow == null) {
+                return;
+            }
+
+            Hashtable<String, Index> indices = loadAllIndices();
+            for (Index index : indices.values()) {
+                index.delete(updatedRow.getOldRow());
+                index.insert(updatedRow.getUpdatedRow());
+                indexManager.saveIndex(index);
+            }
         }
     }
 
@@ -319,7 +332,8 @@ public class Table {
         return indices;
     }
 
-    private Vector<Row> deleteUsingIndex(Hashtable<String, Object> searchValues, Index index) throws DBAppException {
+    private Vector<Row> deleteUsingIndex(Hashtable<String, Object> searchValues, Index index) throws
+        DBAppException {
         Hashtable<String, Object> indexSearchValues = new Hashtable<>();
         for (String searchColumn : searchValues.keySet()) {
             String indexName = indexNames.get(searchColumn);
@@ -347,7 +361,7 @@ public class Table {
 
         for (int i = 0; i < pagesIndex.size(); i++) {
             PageIndexItem pageIndexItem = pagesIndex.get(i);
-            Page page = pageManager.loadPage(pageIndexItem.pageId);
+            Page page = pageManager.loadPage(pageIndexItem.getPageId());
             deletedRows.addAll(page.delete(searchValues));
 
             if (deletePageOrSave(page)) {
@@ -366,7 +380,7 @@ public class Table {
         int pageIndex = Util.binarySearch(
             pagesIndex,
             searchValues.get(clusteringKeyColumn),
-            (pageIndexItem) -> pageIndexItem.pageMin,
+            PageIndexItem::getPageMin,
             dataTypes.get(columnTypes.get(clusteringKeyColumn))
         );
 
@@ -375,7 +389,7 @@ public class Table {
         }
 
         PageIndexItem pageIndexItem = pagesIndex.get(pageIndex);
-        Page page = pageManager.loadPage(pageIndexItem.pageId);
+        Page page = pageManager.loadPage(pageIndexItem.getPageId());
         Vector<Row> deletedRows = page.delete(searchValues);
 
         deletePageOrSave(page);
@@ -389,7 +403,7 @@ public class Table {
     private boolean deletePageOrSave(Page page) throws DBAppException {
         int idx = -1;
         for (int i = 0; i < pagesIndex.size(); i++) {
-            if (pagesIndex.get(i).pageId.equals(page.getPageId())) {
+            if (pagesIndex.get(i).getPageId().equals(page.getPageId())) {
                 idx = i;
                 break;
             }
@@ -403,10 +417,10 @@ public class Table {
 
         if (page.getRows().size() == 0) {
             pagesIndex.remove(idx);
-            pageManager.deletePage(pageIndexItem.pageId);
+            pageManager.deletePage(pageIndexItem.getPageId());
             return true;
         } else {
-            pageIndexItem.pageMin = page.getRows().get(0).get(clusteringKeyColumn);
+            pageIndexItem.setPageMin(page.getRows().get(0).get(clusteringKeyColumn));
             pageManager.savePage(page);
         }
 
@@ -486,10 +500,6 @@ public class Table {
 
     public Hashtable<String, Object> getColumnMax() {
         return columnMax;
-    }
-
-    public boolean isIndexed(String columnName) {
-        return indexNames.containsKey(columnName);
     }
 
     public String getIndexName(String columnName) {
@@ -580,10 +590,8 @@ public class Table {
     }
 
     public Iterator<Row> selectFromTableLinear(
-        SQLTerm[] sqlTerms,
-        String[] operators
-    ) throws
-        DBAppException {
+        SQLTerm[] sqlTerms, String[] operators
+    ) throws DBAppException {
         Iterator<Row> tableIterator = iterator();
         Expression expression = getExpression(sqlTerms, operators);
 
@@ -591,9 +599,7 @@ public class Table {
     }
 
     public Iterator<Row> selectFromTableIndexed(
-        SQLTerm[] sqlTerms,
-        String[] operators,
-        String indexName
+        SQLTerm[] sqlTerms, String[] operators, String indexName
     ) throws DBAppException {
         Index index = indexManager.loadIndex(indexName, tableName);
         Vector<Range> ranges = new Vector<>();
@@ -613,8 +619,10 @@ public class Table {
     public Iterator<Row> select(SQLTerm[] sqlTerms, String[] operators) throws DBAppException {
         String indexName = getIndexForSqlTerms(sqlTerms, operators);
 
-        return indexName != null
-            ? selectFromTableIndexed(sqlTerms, operators, indexName)
-            : selectFromTableLinear(sqlTerms, operators);
+        return indexName != null ? selectFromTableIndexed(
+            sqlTerms,
+            operators,
+            indexName
+        ) : selectFromTableLinear(sqlTerms, operators);
     }
 }

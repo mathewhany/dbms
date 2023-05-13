@@ -1,6 +1,6 @@
 package dbms.indicies;
 
-import dbms.Range;
+import dbms.util.Range;
 
 import java.util.*;
 
@@ -100,81 +100,4 @@ public class OctreeIterator implements Iterator<String> {
 
         return null;
     }
-
-//    private final Range x;
-//    private final Range y;
-//    private final Range z;
-//
-//    private Iterator<String> pagesIterator;
-//    private Iterator<Map.Entry<OctreeKey, Vector<String>>> entriesIterator;
-//    private OctreeIterator currentChildIterator;
-//    private Iterator<OctreeNode> childrenIterator;
-//
-//    private String next;
-//
-//    public OctreeIterator(
-//        OctreeNode octreeNode,
-//        Range x,
-//        Range y,
-//        Range z
-//    ) {
-//        this.x = x == null ? octreeNode.getXRange() : x;
-//        this.y = y == null ? octreeNode.getYRange() : y;
-//        this.z = z == null ? octreeNode.getZRange() : z;
-//
-//        if (octreeNode.isLeaf()) {
-//            entriesIterator = octreeNode.getEntries().entrySet().iterator();
-//        } else {
-//            childrenIterator = octreeNode.getChildren().iterator();
-//        }
-//
-//        next = nextMatch();
-//    }
-//
-//    @Override
-//    public boolean hasNext() {
-//        return next != null;
-//    }
-//
-//    @Override
-//    public String next() {
-//        String result = next;
-//        next = nextMatch();
-//        return result;
-//    }
-//
-//    private String nextMatch() {
-//        if (pagesIterator != null && pagesIterator.hasNext()) {
-//            return pagesIterator.next();
-//        }
-//
-//        if (entriesIterator != null && entriesIterator.hasNext()) {
-//            Map.Entry<OctreeKey, Vector<String>> entry = entriesIterator.next();
-//            OctreeKey key = entry.getKey();
-//
-//            if (x.contains(key.getX()) && y.contains(key.getY()) && z.contains(key.getZ())) {
-//                pagesIterator = entry.getValue().iterator();
-//            }
-//
-//            return nextMatch();
-//        }
-//
-//        if (currentChildIterator != null && currentChildIterator.hasNext()) {
-//            return currentChildIterator.next();
-//        }
-//
-//        if (childrenIterator != null && childrenIterator.hasNext()) {
-//            OctreeNode child = childrenIterator.next();
-//
-//            if (child.getXRange().intersects(x) &&
-//                child.getYRange().intersects(y) &&
-//                child.getZRange().intersects(z)) {
-//                currentChildIterator = new OctreeIterator(child, x, y, z);
-//            }
-//
-//            return nextMatch();
-//        }
-//
-//        return null;
-//    }
 }

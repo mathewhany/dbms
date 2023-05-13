@@ -1,6 +1,6 @@
 package dbms.indicies;
 
-import dbms.Range;
+import dbms.util.Range;
 import dbms.pages.Row;
 
 import java.util.Hashtable;

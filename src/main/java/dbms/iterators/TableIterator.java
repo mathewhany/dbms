@@ -1,5 +1,6 @@
 package dbms.iterators;
 
+import dbms.pages.PageIndexItem;
 import dbms.pages.PageManager;
 import dbms.pages.Row;
 import dbms.tables.Table;
@@ -11,7 +12,7 @@ public class TableIterator implements Iterator<Row> {
 
     public TableIterator(Table table, PageManager pageManager) {
         this.rowsIterator = new RowsIterator(
-            table.getPagesIndex().stream().map((item) -> item.pageId).toList().iterator(),
+            table.getPagesIndex().stream().map(PageIndexItem::getPageId).toList().iterator(),
             pageManager
         );
     }

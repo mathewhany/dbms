@@ -5,9 +5,29 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="86b23039-3874-4a2b-bcf9-322efec03290" name="Changes" comment="Linear Search">
+      <change afterPath="$PROJECT_DIR$/.idea/compiler.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/encodings.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/jarRepositories.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/runConfigurations.xml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dbms.iml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/dbms/BinaryExpression.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/dbms/util/BinaryExpression.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/dbms/DBApp.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/dbms/DBApp.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/dbms/Expression.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/dbms/util/Expression.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/dbms/Range.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/dbms/util/Range.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/dbms/indicies/Index.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/dbms/indicies/Index.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/dbms/indicies/OctreeFactory.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/dbms/indicies/OctreeFactory.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/dbms/indicies/OctreeIterator.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/dbms/indicies/OctreeIterator.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/dbms/indicies/OctreeNode.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/dbms/indicies/OctreeNode.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/dbms/iterators/FilterIterator.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/dbms/iterators/FilterIterator.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/dbms/iterators/TableIterator.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/dbms/iterators/TableIterator.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/dbms/pages/PageIndexItem.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/dbms/pages/PageIndexItem.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/dbms/tables/Table.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/dbms/tables/Table.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/dbms/util/Util.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/dbms/util/Util.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -60,10 +80,11 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">
-    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
-    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
-  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "git-widget-placeholder": "daddy"
+  }
+}]]></component>
   <component name="RecentsManager">
     <key name="CreateClassDialog.RecentsKey">
       <recent name="dbms" />
@@ -238,7 +259,6 @@
         </entry>
       </map>
     </option>
-    <option name="oldMeFiltersMigrated" value="true" />
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Refactoring" />

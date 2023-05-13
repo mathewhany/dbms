@@ -1,5 +1,6 @@
-package dbms;
+package dbms.util;
 
+import dbms.DBAppException;
 import dbms.datatype.DataType;
 import dbms.pages.Row;
 

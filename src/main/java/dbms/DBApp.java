@@ -230,4 +230,10 @@ public class DBApp {
         return table;
     }
 
+
+    // below method returns Iterator with result set if passed
+    // strbufSQL is a select, otherwise returns null.
+    public Iterator parseSQL( StringBuffer sqlBuffer ) throws DBAppException {
+        return null;
+    }
 }

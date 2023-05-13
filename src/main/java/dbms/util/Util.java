@@ -1,6 +1,5 @@
 package dbms.util;
 
-import dbms.Expression;
 import dbms.datatype.DataType;
 
 import java.util.Vector;

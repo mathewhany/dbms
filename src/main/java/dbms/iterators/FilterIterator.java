@@ -1,6 +1,6 @@
 package dbms.iterators;
 
-import dbms.Expression;
+import dbms.util.Expression;
 import dbms.pages.Row;
 
 import java.util.Iterator;

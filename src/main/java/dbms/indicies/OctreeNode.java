@@ -1,7 +1,7 @@
 package dbms.indicies;
 
 import dbms.DBAppException;
-import dbms.Range;
+import dbms.util.Range;
 import dbms.pages.Row;
 
 import java.io.Serializable;
@@ -60,26 +60,26 @@ public class OctreeNode implements Index, Serializable {
 
         } else {
             children.get(getIndex(key)).delete(key, value);
-            if(this.isEmpty())
+
+            if (isEmpty()) {
                 this.children.clear();
-        }
-
-
-
-
-        }
-        public boolean isEmpty () {
-            if (this.isLeaf() && this.entries.size() == 0 )
-                return true ;
-            else if ( !this.isLeaf() ){
-                for (OctreeNode child : this.children)
-                    if(!child.isEmpty())
-                        return false;
-                return true ;
             }
-            return false;
-
         }
+    }
+
+    public boolean isEmpty() {
+        if (isLeaf()) {
+            return entries.size() == 0;
+        }
+
+        for (OctreeNode child : children) {
+            if (!child.isEmpty()) {
+                return false;
+            }
+        }
+
+        return true;
+    }
 
 
     public void delete(Row row) {

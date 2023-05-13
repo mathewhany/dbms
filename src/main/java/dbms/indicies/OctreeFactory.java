@@ -1,10 +1,9 @@
 package dbms.indicies;
 
 import dbms.DBAppException;
-import dbms.Range;
+import dbms.util.Range;
 import dbms.config.Config;
 import dbms.tables.Table;
-import dbms.tables.TableManager;
 
 import java.util.Vector;
 
