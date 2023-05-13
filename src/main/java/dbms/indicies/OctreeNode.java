@@ -57,11 +57,30 @@ public class OctreeNode implements Index, Serializable {
             if (entries.containsKey(key)) {
                 entries.get(key).removeElement(value);
             }
+
         } else {
             children.get(getIndex(key)).delete(key, value);
+            if(this.isEmpty())
+                this.children.clear();
         }
 
-    }
+
+
+
+        }
+        public boolean isEmpty () {
+            if (this.isLeaf() && this.entries.size() == 0 )
+                return true ;
+            else if ( !this.isLeaf() ){
+                for (OctreeNode child : this.children)
+                    if(!child.isEmpty())
+                        return false;
+                return true ;
+            }
+            return false;
+
+        }
+
 
     public void delete(Row row) {
         delete(getKeyForRow(row), row.getPageId());
