@@ -10,10 +10,20 @@ import dbms.indicies.OctreeFactory;
 import dbms.indicies.SerializedIndexManager;
 import dbms.iterators.RowToHashtableIterator;
 import dbms.pages.*;
+import dbms.parser.SQLLexer;
+import dbms.parser.SQLParser;
+import dbms.parser.SQLVisitor;
 import dbms.tables.CsvTableManager;
 import dbms.tables.Table;
 import dbms.tables.TableManager;
 
+import org.antlr.v4.runtime.BaseErrorListener;
+import org.antlr.v4.runtime.CharStream;
+import org.antlr.v4.runtime.CharStreams;
+import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.tree.ParseTree;
+
+import java.util.Date;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Vector;
@@ -233,7 +243,58 @@ public class DBApp {
 
     // below method returns Iterator with result set if passed
     // strbufSQL is a select, otherwise returns null.
-    public Iterator parseSQL( StringBuffer sqlBuffer ) throws DBAppException {
+    public Iterator parseSQL(StringBuffer sqlBuffer) throws DBAppException {
+        SQLLexer lexer = new SQLLexer(CharStreams.fromString(sqlBuffer.toString()));
+        CommonTokenStream tokens = new CommonTokenStream(lexer);
+        SQLParser parser = new SQLParser(tokens);
+        parser.removeErrorListeners();
+        parser.addErrorListener(new AntlrErrorHandler());
+
+        try {
+            SQLParser.StartContext context = parser.start();
+            if (context.select() != null) {
+                String tableName = context.select().table_name().getText();
+                SQLTerm[] sqlTerms = new SQLTerm[context.select().conditions().condition().size()];
+                String[] operators = new String[sqlTerms.length - 1];
+
+                for (int i = 0; i < sqlTerms.length; i++) {
+                    SQLParser.ConditionContext condition =
+                        context.select().conditions().condition(i);
+                    String columnName = condition.column().getText();
+                    String operator = condition.operator().getText();
+                    SQLParser.ValueContext value = condition.value();
+                    Object valueObject = null;
+                    if (value.DATE() != null) {
+                        valueObject = new Date(value.getText());
+                    } else if (value.INT() != null) {
+                        valueObject = Integer.parseInt(value.getText());
+                    } else if (value.FLOAT() != null) {
+                        valueObject = Double.parseDouble(value.getText());
+                    } else if (value.STRING() != null) {
+                        valueObject = value.getText();
+                    }
+
+                    SQLTerm sqlTerm = new SQLTerm();
+                    sqlTerm._strTableName = tableName;
+                    sqlTerm._strColumnName = columnName;
+                    sqlTerm._strOperator = operator;
+                    sqlTerm._objValue = valueObject;
+
+                    sqlTerms[i] = sqlTerm;
+
+                    if (i < operators.length) {
+                        operators[i] = context.select().conditions().compound(i).getText();
+                    }
+                }
+
+                return selectFromTable(sqlTerms, operators);
+            } else if (context.insert() != null) {
+
+            }
+        } catch (AntlrException e) {
+            throw new DBAppException("Invalid SQL query");
+        }
+
         return null;
     }
 }

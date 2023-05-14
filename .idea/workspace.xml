@@ -4,30 +4,14 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="86b23039-3874-4a2b-bcf9-322efec03290" name="Changes" comment="Linear Search">
-      <change afterPath="$PROJECT_DIR$/.idea/compiler.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/encodings.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/jarRepositories.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
+    <list default="true" id="86b23039-3874-4a2b-bcf9-322efec03290" name="Changes" comment="Improve selectFromTable using indices to support more than 3 terms &amp; add flag to enable or disable sorting the results of the index.">
+      <change afterPath="$PROJECT_DIR$/SQL.g4" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/dbms/AntlrErrorHandler.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/dbms/AntlrException.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/runConfigurations.xml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dbms.iml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/dbms/BinaryExpression.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/dbms/util/BinaryExpression.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/dbms/DBApp.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/dbms/DBApp.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/dbms/Expression.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/dbms/util/Expression.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/dbms/Range.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/dbms/util/Range.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/dbms/indicies/Index.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/dbms/indicies/Index.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/dbms/indicies/OctreeFactory.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/dbms/indicies/OctreeFactory.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/dbms/indicies/OctreeIterator.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/dbms/indicies/OctreeIterator.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/dbms/indicies/OctreeNode.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/dbms/indicies/OctreeNode.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/dbms/iterators/FilterIterator.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/dbms/iterators/FilterIterator.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/dbms/iterators/TableIterator.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/dbms/iterators/TableIterator.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/dbms/pages/PageIndexItem.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/dbms/pages/PageIndexItem.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/dbms/tables/Table.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/dbms/tables/Table.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/dbms/util/Util.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/dbms/util/Util.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -82,7 +66,17 @@
   </component>
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
-    "git-widget-placeholder": "daddy"
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "WebServerToolWindowFactoryState": "false",
+    "git-widget-placeholder": "main",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.stylelint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.stylelint": "",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "settings.editor.selected.configurable": "reference.settingsdialog.IDE.editor.colors.ANTLR",
+    "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
   <component name="RecentsManager">
@@ -200,6 +194,7 @@
       <workItem from="1683569189394" duration="5781000" />
       <workItem from="1683739653533" duration="8023000" />
       <workItem from="1683806527833" duration="4040000" />
+      <workItem from="1684085934810" duration="7499000" />
     </task>
     <task id="LOCAL-00001" summary="Finish deleteFromTable">
       <created>1682623578564</created>
@@ -243,7 +238,14 @@
       <option name="project" value="LOCAL" />
       <updated>1683575128212</updated>
     </task>
-    <option name="localTasksCounter" value="7" />
+    <task id="LOCAL-00007" summary="Improve selectFromTable using indices to support more than 3 terms &amp; add flag to enable or disable sorting the results of the index.">
+      <created>1684074173655</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1684074173655</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -268,7 +270,8 @@
     <MESSAGE value="Changed StringDataType.compare() to be case in-sensitive." />
     <MESSAGE value="Finished Milestone 1" />
     <MESSAGE value="Linear Search" />
-    <option name="LAST_COMMIT_MESSAGE" value="Linear Search" />
+    <MESSAGE value="Improve selectFromTable using indices to support more than 3 terms &amp; add flag to enable or disable sorting the results of the index." />
+    <option name="LAST_COMMIT_MESSAGE" value="Improve selectFromTable using indices to support more than 3 terms &amp; add flag to enable or disable sorting the results of the index." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -277,11 +280,6 @@
           <url>file://$PROJECT_DIR$/src/test/java/Test.java</url>
           <line>36</line>
           <option name="timeStamp" value="2" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/test/java/Test.java</url>
-          <line>81</line>
-          <option name="timeStamp" value="3" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/test/java/Test.java</url>
@@ -317,6 +315,11 @@
           <url>file://$PROJECT_DIR$/src/main/java/dbms/iterators/FilterIterator.java</url>
           <line>30</line>
           <option name="timeStamp" value="20" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/test/java/Test.java</url>
+          <line>89</line>
+          <option name="timeStamp" value="23" />
         </line-breakpoint>
         <breakpoint enabled="true" type="java-exception">
           <properties class="dbms.DBAppException" package="dbms" />
