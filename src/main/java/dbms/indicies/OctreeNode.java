@@ -161,6 +161,7 @@ public class OctreeNode implements Index, Serializable {
     }
 
     public Iterator<String> find(Vector<Range> ranges) {
+        System.out.println("Searching octree index" + this.name);
         return new OctreeIterator(this, ranges, new HashSet<>());
     }
 

@@ -5,6 +5,7 @@ import dbms.indicies.Index;
 import dbms.indicies.IndexManager;
 import dbms.iterators.FilterIterator;
 import dbms.iterators.RowsIterator;
+import dbms.iterators.SortedPagesIterator;
 import dbms.iterators.TableIterator;
 import dbms.pages.*;
 import dbms.util.BinaryExpression;
@@ -17,6 +18,8 @@ import dbms.datatype.DataType;
 import java.util.*;
 
 public class Table {
+    private static final boolean SORT_INDEX_RESULTS_BY_CLUSTERING_KEY = false;
+
     private final String tableName;
     private final String clusteringKeyColumn;
     private final Hashtable<String, String> columnTypes = new Hashtable<>();
@@ -117,7 +120,7 @@ public class Table {
         Row currentRow = new Row(row, clusteringKeyColumn);
         Hashtable<String, Index> indices = loadAllIndices();
         DataType clusteringKeyType = dataTypes.get(columnTypes.get(clusteringKeyColumn));
-        // Binary search index of dbms.pages
+
         int searchRes = Util.binarySearch(
             pagesIndex,
             currentRow.getClusteringKeyValue(),
@@ -163,6 +166,7 @@ public class Table {
                     currentRow.getClusteringKeyValue()
                 ) != 0) {
                 for (Index tableIndex : indices.values()) {
+                    tableIndex.delete(currentRow);
                     tableIndex.insert(currentRow);
                 }
             }
@@ -557,20 +561,12 @@ public class Table {
     }
 
     public String getIndexForSqlTerms(SQLTerm[] sqlTerms, String[] operators) {
-        if (sqlTerms.length == 0) {
-            return null;
-        }
-
-        for (String operator : operators) {
-            if (!operator.equalsIgnoreCase("AND")) {
-                return null;
-            }
-        }
-
         Vector<String> columns = new Vector<>();
-        for (SQLTerm sqlTerm : sqlTerms) {
-            if (!sqlTerm._strOperator.equals("!=")) {
-                columns.add(sqlTerm._strColumnName);
+
+        for (int i = operators.length - 1;
+             i >= 0 && operators[i].equalsIgnoreCase("and") || i == -1; i--) {
+            if (!sqlTerms[i + 1]._strOperator.equals("!=")) {
+                columns.add(sqlTerms[i + 1]._strColumnName);
             }
         }
 
@@ -604,14 +600,20 @@ public class Table {
         Index index = indexManager.loadIndex(indexName, tableName);
         Vector<Range> ranges = new Vector<>();
         for (SQLTerm sqlTerm : sqlTerms) {
+            String indexNameForTerm = getIndexName(sqlTerm._strColumnName);
             if (!Objects.equals(sqlTerm._strOperator, "!=") &&
-                getIndexName(sqlTerm._strColumnName).equals(indexName)) {
+                indexNameForTerm != null && indexNameForTerm.equals(indexName)) {
                 ranges.add((Range) sqlTermToExpression(sqlTerm));
             }
         }
 
+        Iterator<String> indexIterator = index.find(ranges);
+        Iterator<String> indexResults = SORT_INDEX_RESULTS_BY_CLUSTERING_KEY
+            ? new SortedPagesIterator(indexIterator)
+            : indexIterator;
+
         return new FilterIterator(
-            new RowsIterator(index.find(ranges), pageManager),
+            new RowsIterator(indexResults, pageManager),
             getExpression(sqlTerms, operators)
         );
     }
