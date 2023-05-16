@@ -4,21 +4,22 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="86b23039-3874-4a2b-bcf9-322efec03290" name="Changes" comment="DBApp.parseSQL for SELECT statements">
-      <change afterPath="$PROJECT_DIR$/src/main/java/dbms/DeveloperFlags.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+    <list default="true" id="86b23039-3874-4a2b-bcf9-322efec03290" name="Changes" comment="Testing Index vs Linear Timing + Optimizations">
+      <change afterPath="$PROJECT_DIR$/src/test/java/Test2.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SQL.g4" beforeDir="false" afterPath="$PROJECT_DIR$/SQL.g4" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/dbms/DBApp.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/dbms/DBApp.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/dbms/datatype/StringDataType.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/dbms/datatype/StringDataType.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/dbms/indicies/OctreeNode.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/dbms/indicies/OctreeNode.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/dbms/indicies/SerializedIndexManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/dbms/indicies/SerializedIndexManager.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/dbms/iterators/FilterIterator.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/dbms/iterators/FilterIterator.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/dbms/iterators/RowsIterator.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/dbms/iterators/RowsIterator.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/dbms/pages/Page.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/dbms/pages/Page.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/dbms/tables/CsvTableManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/dbms/tables/CsvTableManager.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/dbms/tables/Table.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/dbms/tables/Table.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/dbms/tables/TableManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/dbms/tables/TableManager.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/DBApp.config" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/DBApp.config" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/dbms/parser/SQL.interp" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/dbms/parser/SQL.interp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/dbms/parser/SQL.tokens" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/dbms/parser/SQL.tokens" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/dbms/parser/SQLBaseListener.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/dbms/parser/SQLBaseListener.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/dbms/parser/SQLBaseVisitor.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/dbms/parser/SQLBaseVisitor.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/dbms/parser/SQLLexer.interp" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/dbms/parser/SQLLexer.interp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/dbms/parser/SQLLexer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/dbms/parser/SQLLexer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/dbms/parser/SQLLexer.tokens" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/dbms/parser/SQLLexer.tokens" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/dbms/parser/SQLListener.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/dbms/parser/SQLListener.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/dbms/parser/SQLParser.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/dbms/parser/SQLParser.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/dbms/parser/SQLVisitor.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/dbms/parser/SQLVisitor.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/Test.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/Test.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -108,7 +109,7 @@
       <recent name="" />
     </key>
   </component>
-  <component name="RunManager" selected="Application.Test">
+  <component name="RunManager" selected="Application.Test2">
     <configuration name="DateDataType" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="dbms.datatype.DateDataType" />
       <module name="dbms" />
@@ -142,6 +143,13 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
+    <configuration name="Test2" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="Test2" />
+      <module name="dbms" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
     <configuration name="Milestone1PrivateTests and 1 more" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
       <module name="dbms" />
       <option name="TEST_OBJECT" value="pattern" />
@@ -153,22 +161,13 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
-    <configuration name="Milestone1PrivateTests" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
-      <module name="dbms" />
-      <option name="PACKAGE_NAME" value="" />
-      <option name="MAIN_CLASS_NAME" value="Milestone1PrivateTests" />
-      <option name="TEST_OBJECT" value="class" />
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Application.Test2" />
         <item itemvalue="Application.Test" />
         <item itemvalue="Application.OctreeNode" />
         <item itemvalue="Application.DateDataType" />
         <item itemvalue="JUnit.Milestone1PrivateTests and 1 more" />
-        <item itemvalue="JUnit.Milestone1PrivateTests" />
       </list>
     </recent_temporary>
   </component>
@@ -202,7 +201,7 @@
       <workItem from="1683739653533" duration="8023000" />
       <workItem from="1683806527833" duration="4040000" />
       <workItem from="1684085934810" duration="7792000" />
-      <workItem from="1684226018899" duration="11368000" />
+      <workItem from="1684226018899" duration="15111000" />
     </task>
     <task id="LOCAL-00001" summary="Finish deleteFromTable">
       <created>1682623578564</created>
@@ -260,7 +259,14 @@
       <option name="project" value="LOCAL" />
       <updated>1684093746242</updated>
     </task>
-    <option name="localTasksCounter" value="9" />
+    <task id="LOCAL-00009" summary="Testing Index vs Linear Timing + Optimizations">
+      <created>1684237554195</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1684237554195</updated>
+    </task>
+    <option name="localTasksCounter" value="10" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -287,7 +293,8 @@
     <MESSAGE value="Linear Search" />
     <MESSAGE value="Improve selectFromTable using indices to support more than 3 terms &amp; add flag to enable or disable sorting the results of the index." />
     <MESSAGE value="DBApp.parseSQL for SELECT statements" />
-    <option name="LAST_COMMIT_MESSAGE" value="DBApp.parseSQL for SELECT statements" />
+    <MESSAGE value="Testing Index vs Linear Timing + Optimizations" />
+    <option name="LAST_COMMIT_MESSAGE" value="Testing Index vs Linear Timing + Optimizations" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

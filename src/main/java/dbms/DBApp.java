@@ -249,10 +249,12 @@ public class DBApp {
     // below method returns Iterator with result set if passed
     // strbufSQL is a select, otherwise returns null.
     public Iterator parseSQL(StringBuffer sqlBuffer) throws DBAppException {
+        // OK I know this is not the best way to do this but I'm running out of time
+
         SQLLexer lexer = new SQLLexer(CharStreams.fromString(sqlBuffer.toString()));
         CommonTokenStream tokens = new CommonTokenStream(lexer);
         SQLParser parser = new SQLParser(tokens);
-        parser.removeErrorListeners();
+//        parser.removeErrorListeners();
         parser.addErrorListener(new AntlrErrorHandler());
 
         try {
@@ -294,9 +296,167 @@ public class DBApp {
 
                 return selectFromTable(sqlTerms, operators);
             } else if (context.insert() != null) {
+                String tableName = context.insert().table_name().getText();
+                Hashtable<String, Object> values = new Hashtable<>();
 
+                if (context.insert().column().size() != context.insert().value().size()) {
+                    throw new DBAppException("Number of columns and values don't match");
+                }
+
+                for (int i = 0; i < context.insert().column().size(); i++) {
+                    String columnName = context.insert().column(i).getText();
+                    SQLParser.ValueContext value = context.insert().value(i);
+
+                    Object valueObject = null;
+                    if (value.DATE() != null) {
+                        valueObject = new Date(value.getText());
+                    } else if (value.INT() != null) {
+                        valueObject = Integer.parseInt(value.getText());
+                    } else if (value.FLOAT() != null) {
+                        valueObject = Double.parseDouble(value.getText());
+                    } else if (value.STRING() != null) {
+                        valueObject = value.getText();
+                    }
+
+                    values.put(columnName, valueObject);
+                }
+
+                insertIntoTable(tableName, values);
+            } else if (context.update() != null) {
+                String tableName = context.update().table_name().getText();
+                String clusteringKeyValue = context.update().clustering_key_value().getText();
+                String clusteringKeyColumnName = context.update().clustering_key().getText();
+                Hashtable<String, Object> values = new Hashtable<>();
+
+                for (int i = 0; i < context.update().assignments().assignment().size(); i++) {
+                    String columnName =
+                        context.update().assignments().assignment(i).column().getText();
+                    SQLParser.ValueContext value =
+                        context.update().assignments().assignment(i).value();
+
+                    Object valueObject = null;
+                    if (value.DATE() != null) {
+                        valueObject = new Date(value.getText());
+                    } else if (value.INT() != null) {
+                        valueObject = Integer.parseInt(value.getText());
+                    } else if (value.FLOAT() != null) {
+                        valueObject = Double.parseDouble(value.getText());
+                    } else if (value.STRING() != null) {
+                        valueObject = value.getText();
+                    }
+
+                    values.put(columnName, valueObject);
+                }
+
+                Table table = loadTable(tableName);
+                if (!table.getClusteringKeyColumn().equals(clusteringKeyColumnName)) {
+                    throw new DBAppException("Can only update by clustering key");
+                }
+                updateTable(tableName, clusteringKeyValue, values);
+            } else if (context.delete() != null) {
+                String tableName = context.delete().table_name().getText();
+                Hashtable<String, Object> searchValues = new Hashtable<>();
+
+                if (context.delete().assignments() != null) {
+
+                    for (SQLParser.AssignmentContext assignmentContext : context.delete()
+                                                                                .assignments()
+                                                                                .assignment()) {
+                        String columnName = assignmentContext.column().getText();
+                        SQLParser.ValueContext value = assignmentContext.value();
+
+                        Object valueObject = null;
+                        if (value.DATE() != null) {
+                            valueObject = new Date(value.getText());
+                        } else if (value.INT() != null) {
+                            valueObject = Integer.parseInt(value.getText());
+                        } else if (value.FLOAT() != null) {
+                            valueObject = Double.parseDouble(value.getText());
+                        } else if (value.STRING() != null) {
+                            valueObject = value.getText();
+                        }
+
+                        searchValues.put(columnName, valueObject);
+                    }
+                }
+
+                deleteFromTable(tableName, searchValues);
+            } else if (context.create_table() != null) {
+                String tableName = context.create_table().table_name().getText();
+                String clusteringKey = null;
+
+                Hashtable<String, String> colNameType = new Hashtable<>();
+                Hashtable<String, String> colNameMin = new Hashtable<>();
+                Hashtable<String, String> colNameMax = new Hashtable<>();
+
+                for (int i = 0; i < context.create_table().create_table_column().size(); i++) {
+                    SQLParser.Create_table_columnContext columnContext =
+                        context.create_table().create_table_column(i);
+                    String columnName = columnContext.column().getText();
+                    if (clusteringKey != null && columnContext.PRIMARY_KEY() != null) {
+                        throw new DBAppException("Only one primary key is allowed");
+                    } else if (columnContext.PRIMARY_KEY() != null) {
+                        clusteringKey = columnName;
+                    }
+
+                    String columnType = "";
+                    String columnMin = "";
+                    String columnMax = "";
+                    if (columnContext.type().DATE_TYPE() != null) {
+                        columnType = "java.util.Date";
+                        columnMin = "0001-01-01";
+                        columnMax = "9999-12-31";
+                    } else if (columnContext.type().INT_TYPE() != null) {
+                        columnType = "java.lang.Integer";
+                        columnMin = "-2147483648";
+                        columnMax = "2147483647";
+                    } else if (columnContext.type().FLOAT_TYPE() != null ||
+                               columnContext.type().DOUBLE_TYPE() != null) {
+                        columnType = "java.lang.Double";
+                        columnMin = "-1.7976931348623157E308";
+                        columnMax = "1.7976931348623157E308";
+                    } else if (columnContext.type().VARCHAR() != null ||
+                               columnContext.type().TEXT_TYPE() != null ||
+                               columnContext.type().STRING_TYPE() != null) {
+                        columnType = "java.lang.String";
+                        columnMin = "a";
+                        columnMax = "ZZZZZZZZZZZZZZZ";
+                    } else {
+                        throw new DBAppException("Invalid column type");
+                    }
+
+                    colNameType.put(columnName, columnType);
+                    colNameMin.put(columnName, columnMin);
+                    colNameMax.put(columnName, columnMax);
+                }
+
+                if (context.create_table().clustering_key() != null) {
+                    if (clusteringKey == null) {
+                        clusteringKey = context.create_table().clustering_key().getText();
+                    } else {
+                        throw new DBAppException("Only one primary key is allowed");
+                    }
+                }
+
+                if (clusteringKey == null) {
+                    throw new DBAppException("No primary key was specified");
+                }
+
+                createTable(tableName, clusteringKey, colNameType, colNameMin, colNameMax);
+            } else if (context.create_index() != null) {
+                String tableName = context.create_index().table_name().getText();
+                String[] columns = new String[context.create_index().column().size()];
+
+                for (int i = 0; i < context.create_index().column().size(); i++) {
+                    columns[i] = context.create_index().column(i).getText();
+                }
+
+                createIndex(tableName, columns);
+            } else {
+                throw new DBAppException("Invalid SQL query");
             }
-        } catch (AntlrException e) {
+        } catch (
+            AntlrException e) {
             throw new DBAppException("Invalid SQL query");
         }
 

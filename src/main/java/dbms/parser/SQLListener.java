@@ -48,6 +48,66 @@ public interface SQLListener extends ParseTreeListener {
 	 */
 	void exitUpdate(SQLParser.UpdateContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link SQLParser#create_table}.
+	 * @param ctx the parse tree
+	 */
+	void enterCreate_table(SQLParser.Create_tableContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SQLParser#create_table}.
+	 * @param ctx the parse tree
+	 */
+	void exitCreate_table(SQLParser.Create_tableContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link SQLParser#create_index}.
+	 * @param ctx the parse tree
+	 */
+	void enterCreate_index(SQLParser.Create_indexContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SQLParser#create_index}.
+	 * @param ctx the parse tree
+	 */
+	void exitCreate_index(SQLParser.Create_indexContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link SQLParser#create_table_column}.
+	 * @param ctx the parse tree
+	 */
+	void enterCreate_table_column(SQLParser.Create_table_columnContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SQLParser#create_table_column}.
+	 * @param ctx the parse tree
+	 */
+	void exitCreate_table_column(SQLParser.Create_table_columnContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link SQLParser#type}.
+	 * @param ctx the parse tree
+	 */
+	void enterType(SQLParser.TypeContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SQLParser#type}.
+	 * @param ctx the parse tree
+	 */
+	void exitType(SQLParser.TypeContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link SQLParser#clustering_key}.
+	 * @param ctx the parse tree
+	 */
+	void enterClustering_key(SQLParser.Clustering_keyContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SQLParser#clustering_key}.
+	 * @param ctx the parse tree
+	 */
+	void exitClustering_key(SQLParser.Clustering_keyContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link SQLParser#clustering_key_value}.
+	 * @param ctx the parse tree
+	 */
+	void enterClustering_key_value(SQLParser.Clustering_key_valueContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SQLParser#clustering_key_value}.
+	 * @param ctx the parse tree
+	 */
+	void exitClustering_key_value(SQLParser.Clustering_key_valueContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link SQLParser#assignments}.
 	 * @param ctx the parse tree
 	 */

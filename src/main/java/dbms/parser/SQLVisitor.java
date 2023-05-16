@@ -35,6 +35,42 @@ public interface SQLVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitUpdate(SQLParser.UpdateContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link SQLParser#create_table}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitCreate_table(SQLParser.Create_tableContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link SQLParser#create_index}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitCreate_index(SQLParser.Create_indexContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link SQLParser#create_table_column}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitCreate_table_column(SQLParser.Create_table_columnContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link SQLParser#type}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitType(SQLParser.TypeContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link SQLParser#clustering_key}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitClustering_key(SQLParser.Clustering_keyContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link SQLParser#clustering_key_value}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitClustering_key_value(SQLParser.Clustering_key_valueContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link SQLParser#assignments}.
 	 * @param ctx the parse tree
 	 * @return the visitor result

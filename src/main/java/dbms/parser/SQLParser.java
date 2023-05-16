@@ -17,36 +17,44 @@ public class SQLParser extends Parser {
 	protected static final PredictionContextCache _sharedContextCache =
 		new PredictionContextCache();
 	public static final int
-		T__0=1, T__1=2, T__2=3, T__3=4, SELECT=5, FROM=6, WHERE=7, INSERT=8, INTO=9, 
-		VALUES=10, UPDATE=11, SET=12, DELETE=13, AND=14, OR=15, XOR=16, EQ=17, 
-		LT=18, GT=19, LE=20, GE=21, DATE=22, STRING=23, INT=24, FLOAT=25, IDENTIFIER=26, 
-		WS=27;
+		SELECT=1, FROM=2, WHERE=3, INSERT=4, INTO=5, VALUES=6, UPDATE=7, SET=8, 
+		DELETE=9, AND=10, OR=11, XOR=12, INDEX=13, TABLE=14, CREATE=15, PRIMARY_KEY=16, 
+		DATE_TYPE=17, INT_TYPE=18, FLOAT_TYPE=19, STRING_TYPE=20, DOUBLE_TYPE=21, 
+		ON=22, VARCHAR=23, TEXT_TYPE=24, COMMA=25, OPEN_PAREN=26, CLOSE_PAREN=27, 
+		STAR=28, EQ=29, LT=30, GT=31, LE=32, GE=33, DATE=34, STRING=35, INT=36, 
+		FLOAT=37, IDENTIFIER=38, WS=39;
 	public static final int
-		RULE_start = 0, RULE_select = 1, RULE_insert = 2, RULE_update = 3, RULE_assignments = 4, 
-		RULE_assignment = 5, RULE_delete = 6, RULE_column = 7, RULE_table_name = 8, 
-		RULE_conditions = 9, RULE_compound = 10, RULE_condition = 11, RULE_operator = 12, 
-		RULE_value = 13;
+		RULE_start = 0, RULE_select = 1, RULE_insert = 2, RULE_update = 3, RULE_create_table = 4, 
+		RULE_create_index = 5, RULE_create_table_column = 6, RULE_type = 7, RULE_clustering_key = 8, 
+		RULE_clustering_key_value = 9, RULE_assignments = 10, RULE_assignment = 11, 
+		RULE_delete = 12, RULE_column = 13, RULE_table_name = 14, RULE_conditions = 15, 
+		RULE_compound = 16, RULE_condition = 17, RULE_operator = 18, RULE_value = 19;
 	private static String[] makeRuleNames() {
 		return new String[] {
-			"start", "select", "insert", "update", "assignments", "assignment", "delete", 
-			"column", "table_name", "conditions", "compound", "condition", "operator", 
-			"value"
+			"start", "select", "insert", "update", "create_table", "create_index", 
+			"create_table_column", "type", "clustering_key", "clustering_key_value", 
+			"assignments", "assignment", "delete", "column", "table_name", "conditions", 
+			"compound", "condition", "operator", "value"
 		};
 	}
 	public static final String[] ruleNames = makeRuleNames();
 
 	private static String[] makeLiteralNames() {
 		return new String[] {
-			null, "'*'", "'('", "','", "')'", null, null, null, null, null, null, 
-			null, null, null, null, null, null, "'='", "'<'", "'>'", "'<='", "'>='"
+			null, null, null, null, null, null, null, null, null, null, null, null, 
+			null, null, null, null, null, null, null, null, null, null, null, null, 
+			null, null, null, null, null, "'='", "'<'", "'>'", "'<='", "'>='"
 		};
 	}
 	private static final String[] _LITERAL_NAMES = makeLiteralNames();
 	private static String[] makeSymbolicNames() {
 		return new String[] {
-			null, null, null, null, null, "SELECT", "FROM", "WHERE", "INSERT", "INTO", 
-			"VALUES", "UPDATE", "SET", "DELETE", "AND", "OR", "XOR", "EQ", "LT", 
-			"GT", "LE", "GE", "DATE", "STRING", "INT", "FLOAT", "IDENTIFIER", "WS"
+			null, "SELECT", "FROM", "WHERE", "INSERT", "INTO", "VALUES", "UPDATE", 
+			"SET", "DELETE", "AND", "OR", "XOR", "INDEX", "TABLE", "CREATE", "PRIMARY_KEY", 
+			"DATE_TYPE", "INT_TYPE", "FLOAT_TYPE", "STRING_TYPE", "DOUBLE_TYPE", 
+			"ON", "VARCHAR", "TEXT_TYPE", "COMMA", "OPEN_PAREN", "CLOSE_PAREN", "STAR", 
+			"EQ", "LT", "GT", "LE", "GE", "DATE", "STRING", "INT", "FLOAT", "IDENTIFIER", 
+			"WS"
 		};
 	}
 	private static final String[] _SYMBOLIC_NAMES = makeSymbolicNames();
@@ -115,6 +123,12 @@ public class SQLParser extends Parser {
 		public DeleteContext delete() {
 			return getRuleContext(DeleteContext.class,0);
 		}
+		public Create_tableContext create_table() {
+			return getRuleContext(Create_tableContext.class,0);
+		}
+		public Create_indexContext create_index() {
+			return getRuleContext(Create_indexContext.class,0);
+		}
 		public StartContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
@@ -140,37 +154,47 @@ public class SQLParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(32);
+			setState(46);
 			_errHandler.sync(this);
-			switch (_input.LA(1)) {
-			case SELECT:
+			switch ( getInterpreter().adaptivePredict(_input,0,_ctx) ) {
+			case 1:
 				{
-				setState(28);
+				setState(40);
 				select();
 				}
 				break;
-			case INSERT:
+			case 2:
 				{
-				setState(29);
+				setState(41);
 				insert();
 				}
 				break;
-			case UPDATE:
+			case 3:
 				{
-				setState(30);
+				setState(42);
 				update();
 				}
 				break;
-			case DELETE:
+			case 4:
 				{
-				setState(31);
+				setState(43);
 				delete();
 				}
 				break;
-			default:
-				throw new NoViableAltException(this);
+			case 5:
+				{
+				setState(44);
+				create_table();
+				}
+				break;
+			case 6:
+				{
+				setState(45);
+				create_index();
+				}
+				break;
 			}
-			setState(34);
+			setState(48);
 			match(EOF);
 			}
 		}
@@ -188,6 +212,7 @@ public class SQLParser extends Parser {
 	@SuppressWarnings("CheckReturnValue")
 	public static class SelectContext extends ParserRuleContext {
 		public TerminalNode SELECT() { return getToken(SQLParser.SELECT, 0); }
+		public TerminalNode STAR() { return getToken(SQLParser.STAR, 0); }
 		public TerminalNode FROM() { return getToken(SQLParser.FROM, 0); }
 		public Table_nameContext table_name() {
 			return getRuleContext(Table_nameContext.class,0);
@@ -221,17 +246,17 @@ public class SQLParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(36);
+			setState(50);
 			match(SELECT);
-			setState(37);
-			match(T__0);
-			setState(38);
+			setState(51);
+			match(STAR);
+			setState(52);
 			match(FROM);
-			setState(39);
+			setState(53);
 			table_name();
-			setState(40);
+			setState(54);
 			match(WHERE);
-			setState(41);
+			setState(55);
 			conditions();
 			}
 		}
@@ -253,11 +278,19 @@ public class SQLParser extends Parser {
 		public Table_nameContext table_name() {
 			return getRuleContext(Table_nameContext.class,0);
 		}
+		public List<TerminalNode> OPEN_PAREN() { return getTokens(SQLParser.OPEN_PAREN); }
+		public TerminalNode OPEN_PAREN(int i) {
+			return getToken(SQLParser.OPEN_PAREN, i);
+		}
 		public List<ColumnContext> column() {
 			return getRuleContexts(ColumnContext.class);
 		}
 		public ColumnContext column(int i) {
 			return getRuleContext(ColumnContext.class,i);
+		}
+		public List<TerminalNode> CLOSE_PAREN() { return getTokens(SQLParser.CLOSE_PAREN); }
+		public TerminalNode CLOSE_PAREN(int i) {
+			return getToken(SQLParser.CLOSE_PAREN, i);
 		}
 		public TerminalNode VALUES() { return getToken(SQLParser.VALUES, 0); }
 		public List<ValueContext> value() {
@@ -265,6 +298,10 @@ public class SQLParser extends Parser {
 		}
 		public ValueContext value(int i) {
 			return getRuleContext(ValueContext.class,i);
+		}
+		public List<TerminalNode> COMMA() { return getTokens(SQLParser.COMMA); }
+		public TerminalNode COMMA(int i) {
+			return getToken(SQLParser.COMMA, i);
 		}
 		public InsertContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
@@ -292,58 +329,58 @@ public class SQLParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(43);
+			setState(57);
 			match(INSERT);
-			setState(44);
+			setState(58);
 			match(INTO);
-			setState(45);
+			setState(59);
 			table_name();
-			setState(46);
-			match(T__1);
-			setState(47);
+			setState(60);
+			match(OPEN_PAREN);
+			setState(61);
 			column();
-			setState(52);
+			setState(66);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
-			while (_la==T__2) {
+			while (_la==COMMA) {
 				{
 				{
-				setState(48);
-				match(T__2);
-				setState(49);
+				setState(62);
+				match(COMMA);
+				setState(63);
 				column();
 				}
 				}
-				setState(54);
+				setState(68);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
 			}
-			setState(55);
-			match(T__3);
-			setState(56);
+			setState(69);
+			match(CLOSE_PAREN);
+			setState(70);
 			match(VALUES);
-			setState(57);
-			match(T__1);
-			setState(58);
+			setState(71);
+			match(OPEN_PAREN);
+			setState(72);
 			value();
-			setState(63);
+			setState(77);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
-			while (_la==T__2) {
+			while (_la==COMMA) {
 				{
 				{
-				setState(59);
-				match(T__2);
-				setState(60);
+				setState(73);
+				match(COMMA);
+				setState(74);
 				value();
 				}
 				}
-				setState(65);
+				setState(79);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
 			}
-			setState(66);
-			match(T__3);
+			setState(80);
+			match(CLOSE_PAREN);
 			}
 		}
 		catch (RecognitionException re) {
@@ -368,8 +405,12 @@ public class SQLParser extends Parser {
 			return getRuleContext(AssignmentsContext.class,0);
 		}
 		public TerminalNode WHERE() { return getToken(SQLParser.WHERE, 0); }
-		public ConditionsContext conditions() {
-			return getRuleContext(ConditionsContext.class,0);
+		public Clustering_keyContext clustering_key() {
+			return getRuleContext(Clustering_keyContext.class,0);
+		}
+		public TerminalNode EQ() { return getToken(SQLParser.EQ, 0); }
+		public Clustering_key_valueContext clustering_key_value() {
+			return getRuleContext(Clustering_key_valueContext.class,0);
 		}
 		public UpdateContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
@@ -396,18 +437,500 @@ public class SQLParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(68);
+			setState(82);
 			match(UPDATE);
-			setState(69);
+			setState(83);
 			table_name();
-			setState(70);
+			setState(84);
 			match(SET);
-			setState(71);
+			setState(85);
 			assignments();
-			setState(72);
+			setState(86);
 			match(WHERE);
-			setState(73);
-			conditions();
+			setState(87);
+			clustering_key();
+			setState(88);
+			match(EQ);
+			setState(89);
+			clustering_key_value();
+			}
+		}
+		catch (RecognitionException re) {
+			_localctx.exception = re;
+			_errHandler.reportError(this, re);
+			_errHandler.recover(this, re);
+		}
+		finally {
+			exitRule();
+		}
+		return _localctx;
+	}
+
+	@SuppressWarnings("CheckReturnValue")
+	public static class Create_tableContext extends ParserRuleContext {
+		public TerminalNode CREATE() { return getToken(SQLParser.CREATE, 0); }
+		public TerminalNode TABLE() { return getToken(SQLParser.TABLE, 0); }
+		public Table_nameContext table_name() {
+			return getRuleContext(Table_nameContext.class,0);
+		}
+		public List<TerminalNode> OPEN_PAREN() { return getTokens(SQLParser.OPEN_PAREN); }
+		public TerminalNode OPEN_PAREN(int i) {
+			return getToken(SQLParser.OPEN_PAREN, i);
+		}
+		public List<Create_table_columnContext> create_table_column() {
+			return getRuleContexts(Create_table_columnContext.class);
+		}
+		public Create_table_columnContext create_table_column(int i) {
+			return getRuleContext(Create_table_columnContext.class,i);
+		}
+		public List<TerminalNode> CLOSE_PAREN() { return getTokens(SQLParser.CLOSE_PAREN); }
+		public TerminalNode CLOSE_PAREN(int i) {
+			return getToken(SQLParser.CLOSE_PAREN, i);
+		}
+		public List<TerminalNode> COMMA() { return getTokens(SQLParser.COMMA); }
+		public TerminalNode COMMA(int i) {
+			return getToken(SQLParser.COMMA, i);
+		}
+		public TerminalNode PRIMARY_KEY() { return getToken(SQLParser.PRIMARY_KEY, 0); }
+		public Clustering_keyContext clustering_key() {
+			return getRuleContext(Clustering_keyContext.class,0);
+		}
+		public Create_tableContext(ParserRuleContext parent, int invokingState) {
+			super(parent, invokingState);
+		}
+		@Override public int getRuleIndex() { return RULE_create_table; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof SQLListener ) ((SQLListener)listener).enterCreate_table(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof SQLListener ) ((SQLListener)listener).exitCreate_table(this);
+		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof SQLVisitor ) return ((SQLVisitor<? extends T>)visitor).visitCreate_table(this);
+			else return visitor.visitChildren(this);
+		}
+	}
+
+	public final Create_tableContext create_table() throws RecognitionException {
+		Create_tableContext _localctx = new Create_tableContext(_ctx, getState());
+		enterRule(_localctx, 8, RULE_create_table);
+		int _la;
+		try {
+			int _alt;
+			enterOuterAlt(_localctx, 1);
+			{
+			setState(91);
+			match(CREATE);
+			setState(92);
+			match(TABLE);
+			setState(93);
+			table_name();
+			setState(94);
+			match(OPEN_PAREN);
+			setState(95);
+			create_table_column();
+			setState(100);
+			_errHandler.sync(this);
+			_alt = getInterpreter().adaptivePredict(_input,3,_ctx);
+			while ( _alt!=2 && _alt!=org.antlr.v4.runtime.atn.ATN.INVALID_ALT_NUMBER ) {
+				if ( _alt==1 ) {
+					{
+					{
+					setState(96);
+					match(COMMA);
+					setState(97);
+					create_table_column();
+					}
+					} 
+				}
+				setState(102);
+				_errHandler.sync(this);
+				_alt = getInterpreter().adaptivePredict(_input,3,_ctx);
+			}
+			setState(109);
+			_errHandler.sync(this);
+			_la = _input.LA(1);
+			if (_la==COMMA) {
+				{
+				setState(103);
+				match(COMMA);
+				setState(104);
+				match(PRIMARY_KEY);
+				setState(105);
+				match(OPEN_PAREN);
+				setState(106);
+				clustering_key();
+				setState(107);
+				match(CLOSE_PAREN);
+				}
+			}
+
+			setState(111);
+			match(CLOSE_PAREN);
+			}
+		}
+		catch (RecognitionException re) {
+			_localctx.exception = re;
+			_errHandler.reportError(this, re);
+			_errHandler.recover(this, re);
+		}
+		finally {
+			exitRule();
+		}
+		return _localctx;
+	}
+
+	@SuppressWarnings("CheckReturnValue")
+	public static class Create_indexContext extends ParserRuleContext {
+		public TerminalNode CREATE() { return getToken(SQLParser.CREATE, 0); }
+		public TerminalNode INDEX() { return getToken(SQLParser.INDEX, 0); }
+		public TerminalNode IDENTIFIER() { return getToken(SQLParser.IDENTIFIER, 0); }
+		public TerminalNode ON() { return getToken(SQLParser.ON, 0); }
+		public Table_nameContext table_name() {
+			return getRuleContext(Table_nameContext.class,0);
+		}
+		public TerminalNode OPEN_PAREN() { return getToken(SQLParser.OPEN_PAREN, 0); }
+		public List<ColumnContext> column() {
+			return getRuleContexts(ColumnContext.class);
+		}
+		public ColumnContext column(int i) {
+			return getRuleContext(ColumnContext.class,i);
+		}
+		public TerminalNode CLOSE_PAREN() { return getToken(SQLParser.CLOSE_PAREN, 0); }
+		public List<TerminalNode> COMMA() { return getTokens(SQLParser.COMMA); }
+		public TerminalNode COMMA(int i) {
+			return getToken(SQLParser.COMMA, i);
+		}
+		public Create_indexContext(ParserRuleContext parent, int invokingState) {
+			super(parent, invokingState);
+		}
+		@Override public int getRuleIndex() { return RULE_create_index; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof SQLListener ) ((SQLListener)listener).enterCreate_index(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof SQLListener ) ((SQLListener)listener).exitCreate_index(this);
+		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof SQLVisitor ) return ((SQLVisitor<? extends T>)visitor).visitCreate_index(this);
+			else return visitor.visitChildren(this);
+		}
+	}
+
+	public final Create_indexContext create_index() throws RecognitionException {
+		Create_indexContext _localctx = new Create_indexContext(_ctx, getState());
+		enterRule(_localctx, 10, RULE_create_index);
+		int _la;
+		try {
+			enterOuterAlt(_localctx, 1);
+			{
+			setState(113);
+			match(CREATE);
+			setState(114);
+			match(INDEX);
+			setState(115);
+			match(IDENTIFIER);
+			setState(116);
+			match(ON);
+			setState(117);
+			table_name();
+			setState(118);
+			match(OPEN_PAREN);
+			setState(119);
+			column();
+			setState(124);
+			_errHandler.sync(this);
+			_la = _input.LA(1);
+			while (_la==COMMA) {
+				{
+				{
+				setState(120);
+				match(COMMA);
+				setState(121);
+				column();
+				}
+				}
+				setState(126);
+				_errHandler.sync(this);
+				_la = _input.LA(1);
+			}
+			setState(127);
+			match(CLOSE_PAREN);
+			}
+		}
+		catch (RecognitionException re) {
+			_localctx.exception = re;
+			_errHandler.reportError(this, re);
+			_errHandler.recover(this, re);
+		}
+		finally {
+			exitRule();
+		}
+		return _localctx;
+	}
+
+	@SuppressWarnings("CheckReturnValue")
+	public static class Create_table_columnContext extends ParserRuleContext {
+		public ColumnContext column() {
+			return getRuleContext(ColumnContext.class,0);
+		}
+		public TypeContext type() {
+			return getRuleContext(TypeContext.class,0);
+		}
+		public TerminalNode PRIMARY_KEY() { return getToken(SQLParser.PRIMARY_KEY, 0); }
+		public Create_table_columnContext(ParserRuleContext parent, int invokingState) {
+			super(parent, invokingState);
+		}
+		@Override public int getRuleIndex() { return RULE_create_table_column; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof SQLListener ) ((SQLListener)listener).enterCreate_table_column(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof SQLListener ) ((SQLListener)listener).exitCreate_table_column(this);
+		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof SQLVisitor ) return ((SQLVisitor<? extends T>)visitor).visitCreate_table_column(this);
+			else return visitor.visitChildren(this);
+		}
+	}
+
+	public final Create_table_columnContext create_table_column() throws RecognitionException {
+		Create_table_columnContext _localctx = new Create_table_columnContext(_ctx, getState());
+		enterRule(_localctx, 12, RULE_create_table_column);
+		int _la;
+		try {
+			enterOuterAlt(_localctx, 1);
+			{
+			setState(129);
+			column();
+			setState(130);
+			type();
+			setState(132);
+			_errHandler.sync(this);
+			_la = _input.LA(1);
+			if (_la==PRIMARY_KEY) {
+				{
+				setState(131);
+				match(PRIMARY_KEY);
+				}
+			}
+
+			}
+		}
+		catch (RecognitionException re) {
+			_localctx.exception = re;
+			_errHandler.reportError(this, re);
+			_errHandler.recover(this, re);
+		}
+		finally {
+			exitRule();
+		}
+		return _localctx;
+	}
+
+	@SuppressWarnings("CheckReturnValue")
+	public static class TypeContext extends ParserRuleContext {
+		public TerminalNode INT_TYPE() { return getToken(SQLParser.INT_TYPE, 0); }
+		public TerminalNode FLOAT_TYPE() { return getToken(SQLParser.FLOAT_TYPE, 0); }
+		public TerminalNode STRING_TYPE() { return getToken(SQLParser.STRING_TYPE, 0); }
+		public TerminalNode DATE_TYPE() { return getToken(SQLParser.DATE_TYPE, 0); }
+		public TerminalNode DOUBLE_TYPE() { return getToken(SQLParser.DOUBLE_TYPE, 0); }
+		public TerminalNode TEXT_TYPE() { return getToken(SQLParser.TEXT_TYPE, 0); }
+		public TerminalNode VARCHAR() { return getToken(SQLParser.VARCHAR, 0); }
+		public TerminalNode OPEN_PAREN() { return getToken(SQLParser.OPEN_PAREN, 0); }
+		public TerminalNode INT() { return getToken(SQLParser.INT, 0); }
+		public TerminalNode CLOSE_PAREN() { return getToken(SQLParser.CLOSE_PAREN, 0); }
+		public TypeContext(ParserRuleContext parent, int invokingState) {
+			super(parent, invokingState);
+		}
+		@Override public int getRuleIndex() { return RULE_type; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof SQLListener ) ((SQLListener)listener).enterType(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof SQLListener ) ((SQLListener)listener).exitType(this);
+		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof SQLVisitor ) return ((SQLVisitor<? extends T>)visitor).visitType(this);
+			else return visitor.visitChildren(this);
+		}
+	}
+
+	public final TypeContext type() throws RecognitionException {
+		TypeContext _localctx = new TypeContext(_ctx, getState());
+		enterRule(_localctx, 14, RULE_type);
+		int _la;
+		try {
+			setState(146);
+			_errHandler.sync(this);
+			switch (_input.LA(1)) {
+			case INT_TYPE:
+				enterOuterAlt(_localctx, 1);
+				{
+				setState(134);
+				match(INT_TYPE);
+				}
+				break;
+			case FLOAT_TYPE:
+				enterOuterAlt(_localctx, 2);
+				{
+				setState(135);
+				match(FLOAT_TYPE);
+				}
+				break;
+			case STRING_TYPE:
+				enterOuterAlt(_localctx, 3);
+				{
+				setState(136);
+				match(STRING_TYPE);
+				}
+				break;
+			case DATE_TYPE:
+				enterOuterAlt(_localctx, 4);
+				{
+				setState(137);
+				match(DATE_TYPE);
+				}
+				break;
+			case DOUBLE_TYPE:
+				enterOuterAlt(_localctx, 5);
+				{
+				setState(138);
+				match(DOUBLE_TYPE);
+				}
+				break;
+			case TEXT_TYPE:
+				enterOuterAlt(_localctx, 6);
+				{
+				setState(139);
+				match(TEXT_TYPE);
+				}
+				break;
+			case VARCHAR:
+				enterOuterAlt(_localctx, 7);
+				{
+				setState(140);
+				match(VARCHAR);
+				setState(144);
+				_errHandler.sync(this);
+				_la = _input.LA(1);
+				if (_la==OPEN_PAREN) {
+					{
+					setState(141);
+					match(OPEN_PAREN);
+					setState(142);
+					match(INT);
+					setState(143);
+					match(CLOSE_PAREN);
+					}
+				}
+
+				}
+				break;
+			default:
+				throw new NoViableAltException(this);
+			}
+		}
+		catch (RecognitionException re) {
+			_localctx.exception = re;
+			_errHandler.reportError(this, re);
+			_errHandler.recover(this, re);
+		}
+		finally {
+			exitRule();
+		}
+		return _localctx;
+	}
+
+	@SuppressWarnings("CheckReturnValue")
+	public static class Clustering_keyContext extends ParserRuleContext {
+		public ColumnContext column() {
+			return getRuleContext(ColumnContext.class,0);
+		}
+		public Clustering_keyContext(ParserRuleContext parent, int invokingState) {
+			super(parent, invokingState);
+		}
+		@Override public int getRuleIndex() { return RULE_clustering_key; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof SQLListener ) ((SQLListener)listener).enterClustering_key(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof SQLListener ) ((SQLListener)listener).exitClustering_key(this);
+		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof SQLVisitor ) return ((SQLVisitor<? extends T>)visitor).visitClustering_key(this);
+			else return visitor.visitChildren(this);
+		}
+	}
+
+	public final Clustering_keyContext clustering_key() throws RecognitionException {
+		Clustering_keyContext _localctx = new Clustering_keyContext(_ctx, getState());
+		enterRule(_localctx, 16, RULE_clustering_key);
+		try {
+			enterOuterAlt(_localctx, 1);
+			{
+			setState(148);
+			column();
+			}
+		}
+		catch (RecognitionException re) {
+			_localctx.exception = re;
+			_errHandler.reportError(this, re);
+			_errHandler.recover(this, re);
+		}
+		finally {
+			exitRule();
+		}
+		return _localctx;
+	}
+
+	@SuppressWarnings("CheckReturnValue")
+	public static class Clustering_key_valueContext extends ParserRuleContext {
+		public ValueContext value() {
+			return getRuleContext(ValueContext.class,0);
+		}
+		public Clustering_key_valueContext(ParserRuleContext parent, int invokingState) {
+			super(parent, invokingState);
+		}
+		@Override public int getRuleIndex() { return RULE_clustering_key_value; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof SQLListener ) ((SQLListener)listener).enterClustering_key_value(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof SQLListener ) ((SQLListener)listener).exitClustering_key_value(this);
+		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof SQLVisitor ) return ((SQLVisitor<? extends T>)visitor).visitClustering_key_value(this);
+			else return visitor.visitChildren(this);
+		}
+	}
+
+	public final Clustering_key_valueContext clustering_key_value() throws RecognitionException {
+		Clustering_key_valueContext _localctx = new Clustering_key_valueContext(_ctx, getState());
+		enterRule(_localctx, 18, RULE_clustering_key_value);
+		try {
+			enterOuterAlt(_localctx, 1);
+			{
+			setState(150);
+			value();
 			}
 		}
 		catch (RecognitionException re) {
@@ -428,6 +951,10 @@ public class SQLParser extends Parser {
 		}
 		public AssignmentContext assignment(int i) {
 			return getRuleContext(AssignmentContext.class,i);
+		}
+		public List<TerminalNode> COMMA() { return getTokens(SQLParser.COMMA); }
+		public TerminalNode COMMA(int i) {
+			return getToken(SQLParser.COMMA, i);
 		}
 		public AssignmentsContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
@@ -450,26 +977,26 @@ public class SQLParser extends Parser {
 
 	public final AssignmentsContext assignments() throws RecognitionException {
 		AssignmentsContext _localctx = new AssignmentsContext(_ctx, getState());
-		enterRule(_localctx, 8, RULE_assignments);
+		enterRule(_localctx, 20, RULE_assignments);
 		int _la;
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(75);
+			setState(152);
 			assignment();
-			setState(80);
+			setState(157);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
-			while (_la==T__2) {
+			while (_la==COMMA) {
 				{
 				{
-				setState(76);
-				match(T__2);
-				setState(77);
+				setState(153);
+				match(COMMA);
+				setState(154);
 				assignment();
 				}
 				}
-				setState(82);
+				setState(159);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
 			}
@@ -516,15 +1043,15 @@ public class SQLParser extends Parser {
 
 	public final AssignmentContext assignment() throws RecognitionException {
 		AssignmentContext _localctx = new AssignmentContext(_ctx, getState());
-		enterRule(_localctx, 10, RULE_assignment);
+		enterRule(_localctx, 22, RULE_assignment);
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(83);
+			setState(160);
 			column();
-			setState(84);
+			setState(161);
 			match(EQ);
-			setState(85);
+			setState(162);
 			value();
 			}
 		}
@@ -547,8 +1074,8 @@ public class SQLParser extends Parser {
 			return getRuleContext(Table_nameContext.class,0);
 		}
 		public TerminalNode WHERE() { return getToken(SQLParser.WHERE, 0); }
-		public ConditionsContext conditions() {
-			return getRuleContext(ConditionsContext.class,0);
+		public AssignmentsContext assignments() {
+			return getRuleContext(AssignmentsContext.class,0);
 		}
 		public DeleteContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
@@ -571,26 +1098,26 @@ public class SQLParser extends Parser {
 
 	public final DeleteContext delete() throws RecognitionException {
 		DeleteContext _localctx = new DeleteContext(_ctx, getState());
-		enterRule(_localctx, 12, RULE_delete);
+		enterRule(_localctx, 24, RULE_delete);
 		int _la;
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(87);
+			setState(164);
 			match(DELETE);
-			setState(88);
+			setState(165);
 			match(FROM);
-			setState(89);
+			setState(166);
 			table_name();
-			setState(92);
+			setState(169);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
 			if (_la==WHERE) {
 				{
-				setState(90);
+				setState(167);
 				match(WHERE);
-				setState(91);
-				conditions();
+				setState(168);
+				assignments();
 				}
 			}
 
@@ -631,11 +1158,11 @@ public class SQLParser extends Parser {
 
 	public final ColumnContext column() throws RecognitionException {
 		ColumnContext _localctx = new ColumnContext(_ctx, getState());
-		enterRule(_localctx, 14, RULE_column);
+		enterRule(_localctx, 26, RULE_column);
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(94);
+			setState(171);
 			match(IDENTIFIER);
 			}
 		}
@@ -674,11 +1201,11 @@ public class SQLParser extends Parser {
 
 	public final Table_nameContext table_name() throws RecognitionException {
 		Table_nameContext _localctx = new Table_nameContext(_ctx, getState());
-		enterRule(_localctx, 16, RULE_table_name);
+		enterRule(_localctx, 28, RULE_table_name);
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(96);
+			setState(173);
 			match(IDENTIFIER);
 			}
 		}
@@ -728,26 +1255,26 @@ public class SQLParser extends Parser {
 
 	public final ConditionsContext conditions() throws RecognitionException {
 		ConditionsContext _localctx = new ConditionsContext(_ctx, getState());
-		enterRule(_localctx, 18, RULE_conditions);
+		enterRule(_localctx, 30, RULE_conditions);
 		int _la;
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(98);
+			setState(175);
 			condition();
-			setState(104);
+			setState(181);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
-			while ((((_la) & ~0x3f) == 0 && ((1L << _la) & 114688L) != 0)) {
+			while ((((_la) & ~0x3f) == 0 && ((1L << _la) & 7168L) != 0)) {
 				{
 				{
-				setState(99);
+				setState(176);
 				compound();
-				setState(100);
+				setState(177);
 				condition();
 				}
 				}
-				setState(106);
+				setState(183);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
 			}
@@ -790,14 +1317,14 @@ public class SQLParser extends Parser {
 
 	public final CompoundContext compound() throws RecognitionException {
 		CompoundContext _localctx = new CompoundContext(_ctx, getState());
-		enterRule(_localctx, 20, RULE_compound);
+		enterRule(_localctx, 32, RULE_compound);
 		int _la;
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(107);
+			setState(184);
 			_la = _input.LA(1);
-			if ( !((((_la) & ~0x3f) == 0 && ((1L << _la) & 114688L) != 0)) ) {
+			if ( !((((_la) & ~0x3f) == 0 && ((1L << _la) & 7168L) != 0)) ) {
 			_errHandler.recoverInline(this);
 			}
 			else {
@@ -850,15 +1377,15 @@ public class SQLParser extends Parser {
 
 	public final ConditionContext condition() throws RecognitionException {
 		ConditionContext _localctx = new ConditionContext(_ctx, getState());
-		enterRule(_localctx, 22, RULE_condition);
+		enterRule(_localctx, 34, RULE_condition);
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(109);
+			setState(186);
 			column();
-			setState(110);
+			setState(187);
 			operator();
-			setState(111);
+			setState(188);
 			value();
 			}
 		}
@@ -901,14 +1428,14 @@ public class SQLParser extends Parser {
 
 	public final OperatorContext operator() throws RecognitionException {
 		OperatorContext _localctx = new OperatorContext(_ctx, getState());
-		enterRule(_localctx, 24, RULE_operator);
+		enterRule(_localctx, 36, RULE_operator);
 		int _la;
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(113);
+			setState(190);
 			_la = _input.LA(1);
-			if ( !((((_la) & ~0x3f) == 0 && ((1L << _la) & 4063232L) != 0)) ) {
+			if ( !((((_la) & ~0x3f) == 0 && ((1L << _la) & 16642998272L) != 0)) ) {
 			_errHandler.recoverInline(this);
 			}
 			else {
@@ -956,14 +1483,14 @@ public class SQLParser extends Parser {
 
 	public final ValueContext value() throws RecognitionException {
 		ValueContext _localctx = new ValueContext(_ctx, getState());
-		enterRule(_localctx, 26, RULE_value);
+		enterRule(_localctx, 38, RULE_value);
 		int _la;
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(115);
+			setState(192);
 			_la = _input.LA(1);
-			if ( !((((_la) & ~0x3f) == 0 && ((1L << _la) & 62914560L) != 0)) ) {
+			if ( !((((_la) & ~0x3f) == 0 && ((1L << _la) & 257698037760L) != 0)) ) {
 			_errHandler.recoverInline(this);
 			}
 			else {
@@ -985,69 +1512,121 @@ public class SQLParser extends Parser {
 	}
 
 	public static final String _serializedATN =
-		"\u0004\u0001\u001bv\u0002\u0000\u0007\u0000\u0002\u0001\u0007\u0001\u0002"+
+		"\u0004\u0001\'\u00c3\u0002\u0000\u0007\u0000\u0002\u0001\u0007\u0001\u0002"+
 		"\u0002\u0007\u0002\u0002\u0003\u0007\u0003\u0002\u0004\u0007\u0004\u0002"+
 		"\u0005\u0007\u0005\u0002\u0006\u0007\u0006\u0002\u0007\u0007\u0007\u0002"+
 		"\b\u0007\b\u0002\t\u0007\t\u0002\n\u0007\n\u0002\u000b\u0007\u000b\u0002"+
-		"\f\u0007\f\u0002\r\u0007\r\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000"+
-		"\u0003\u0000!\b\u0000\u0001\u0000\u0001\u0000\u0001\u0001\u0001\u0001"+
-		"\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0002"+
+		"\f\u0007\f\u0002\r\u0007\r\u0002\u000e\u0007\u000e\u0002\u000f\u0007\u000f"+
+		"\u0002\u0010\u0007\u0010\u0002\u0011\u0007\u0011\u0002\u0012\u0007\u0012"+
+		"\u0002\u0013\u0007\u0013\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000"+
+		"\u0001\u0000\u0001\u0000\u0003\u0000/\b\u0000\u0001\u0000\u0001\u0000"+
+		"\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001"+
+		"\u0001\u0001\u0001\u0002\u0001\u0002\u0001\u0002\u0001\u0002\u0001\u0002"+
+		"\u0001\u0002\u0001\u0002\u0005\u0002A\b\u0002\n\u0002\f\u0002D\t\u0002"+
 		"\u0001\u0002\u0001\u0002\u0001\u0002\u0001\u0002\u0001\u0002\u0001\u0002"+
-		"\u0005\u00023\b\u0002\n\u0002\f\u00026\t\u0002\u0001\u0002\u0001\u0002"+
-		"\u0001\u0002\u0001\u0002\u0001\u0002\u0001\u0002\u0005\u0002>\b\u0002"+
-		"\n\u0002\f\u0002A\t\u0002\u0001\u0002\u0001\u0002\u0001\u0003\u0001\u0003"+
-		"\u0001\u0003\u0001\u0003\u0001\u0003\u0001\u0003\u0001\u0003\u0001\u0004"+
-		"\u0001\u0004\u0001\u0004\u0005\u0004O\b\u0004\n\u0004\f\u0004R\t\u0004"+
-		"\u0001\u0005\u0001\u0005\u0001\u0005\u0001\u0005\u0001\u0006\u0001\u0006"+
-		"\u0001\u0006\u0001\u0006\u0001\u0006\u0003\u0006]\b\u0006\u0001\u0007"+
-		"\u0001\u0007\u0001\b\u0001\b\u0001\t\u0001\t\u0001\t\u0001\t\u0005\tg"+
-		"\b\t\n\t\f\tj\t\t\u0001\n\u0001\n\u0001\u000b\u0001\u000b\u0001\u000b"+
-		"\u0001\u000b\u0001\f\u0001\f\u0001\r\u0001\r\u0001\r\u0000\u0000\u000e"+
-		"\u0000\u0002\u0004\u0006\b\n\f\u000e\u0010\u0012\u0014\u0016\u0018\u001a"+
-		"\u0000\u0003\u0001\u0000\u000e\u0010\u0001\u0000\u0011\u0015\u0001\u0000"+
-		"\u0016\u0019o\u0000 \u0001\u0000\u0000\u0000\u0002$\u0001\u0000\u0000"+
-		"\u0000\u0004+\u0001\u0000\u0000\u0000\u0006D\u0001\u0000\u0000\u0000\b"+
-		"K\u0001\u0000\u0000\u0000\nS\u0001\u0000\u0000\u0000\fW\u0001\u0000\u0000"+
-		"\u0000\u000e^\u0001\u0000\u0000\u0000\u0010`\u0001\u0000\u0000\u0000\u0012"+
-		"b\u0001\u0000\u0000\u0000\u0014k\u0001\u0000\u0000\u0000\u0016m\u0001"+
-		"\u0000\u0000\u0000\u0018q\u0001\u0000\u0000\u0000\u001as\u0001\u0000\u0000"+
-		"\u0000\u001c!\u0003\u0002\u0001\u0000\u001d!\u0003\u0004\u0002\u0000\u001e"+
-		"!\u0003\u0006\u0003\u0000\u001f!\u0003\f\u0006\u0000 \u001c\u0001\u0000"+
-		"\u0000\u0000 \u001d\u0001\u0000\u0000\u0000 \u001e\u0001\u0000\u0000\u0000"+
-		" \u001f\u0001\u0000\u0000\u0000!\"\u0001\u0000\u0000\u0000\"#\u0005\u0000"+
-		"\u0000\u0001#\u0001\u0001\u0000\u0000\u0000$%\u0005\u0005\u0000\u0000"+
-		"%&\u0005\u0001\u0000\u0000&\'\u0005\u0006\u0000\u0000\'(\u0003\u0010\b"+
-		"\u0000()\u0005\u0007\u0000\u0000)*\u0003\u0012\t\u0000*\u0003\u0001\u0000"+
-		"\u0000\u0000+,\u0005\b\u0000\u0000,-\u0005\t\u0000\u0000-.\u0003\u0010"+
-		"\b\u0000./\u0005\u0002\u0000\u0000/4\u0003\u000e\u0007\u000001\u0005\u0003"+
-		"\u0000\u000013\u0003\u000e\u0007\u000020\u0001\u0000\u0000\u000036\u0001"+
-		"\u0000\u0000\u000042\u0001\u0000\u0000\u000045\u0001\u0000\u0000\u0000"+
-		"57\u0001\u0000\u0000\u000064\u0001\u0000\u0000\u000078\u0005\u0004\u0000"+
-		"\u000089\u0005\n\u0000\u00009:\u0005\u0002\u0000\u0000:?\u0003\u001a\r"+
-		"\u0000;<\u0005\u0003\u0000\u0000<>\u0003\u001a\r\u0000=;\u0001\u0000\u0000"+
-		"\u0000>A\u0001\u0000\u0000\u0000?=\u0001\u0000\u0000\u0000?@\u0001\u0000"+
-		"\u0000\u0000@B\u0001\u0000\u0000\u0000A?\u0001\u0000\u0000\u0000BC\u0005"+
-		"\u0004\u0000\u0000C\u0005\u0001\u0000\u0000\u0000DE\u0005\u000b\u0000"+
-		"\u0000EF\u0003\u0010\b\u0000FG\u0005\f\u0000\u0000GH\u0003\b\u0004\u0000"+
-		"HI\u0005\u0007\u0000\u0000IJ\u0003\u0012\t\u0000J\u0007\u0001\u0000\u0000"+
-		"\u0000KP\u0003\n\u0005\u0000LM\u0005\u0003\u0000\u0000MO\u0003\n\u0005"+
-		"\u0000NL\u0001\u0000\u0000\u0000OR\u0001\u0000\u0000\u0000PN\u0001\u0000"+
-		"\u0000\u0000PQ\u0001\u0000\u0000\u0000Q\t\u0001\u0000\u0000\u0000RP\u0001"+
-		"\u0000\u0000\u0000ST\u0003\u000e\u0007\u0000TU\u0005\u0011\u0000\u0000"+
-		"UV\u0003\u001a\r\u0000V\u000b\u0001\u0000\u0000\u0000WX\u0005\r\u0000"+
-		"\u0000XY\u0005\u0006\u0000\u0000Y\\\u0003\u0010\b\u0000Z[\u0005\u0007"+
-		"\u0000\u0000[]\u0003\u0012\t\u0000\\Z\u0001\u0000\u0000\u0000\\]\u0001"+
-		"\u0000\u0000\u0000]\r\u0001\u0000\u0000\u0000^_\u0005\u001a\u0000\u0000"+
-		"_\u000f\u0001\u0000\u0000\u0000`a\u0005\u001a\u0000\u0000a\u0011\u0001"+
-		"\u0000\u0000\u0000bh\u0003\u0016\u000b\u0000cd\u0003\u0014\n\u0000de\u0003"+
-		"\u0016\u000b\u0000eg\u0001\u0000\u0000\u0000fc\u0001\u0000\u0000\u0000"+
-		"gj\u0001\u0000\u0000\u0000hf\u0001\u0000\u0000\u0000hi\u0001\u0000\u0000"+
-		"\u0000i\u0013\u0001\u0000\u0000\u0000jh\u0001\u0000\u0000\u0000kl\u0007"+
-		"\u0000\u0000\u0000l\u0015\u0001\u0000\u0000\u0000mn\u0003\u000e\u0007"+
-		"\u0000no\u0003\u0018\f\u0000op\u0003\u001a\r\u0000p\u0017\u0001\u0000"+
-		"\u0000\u0000qr\u0007\u0001\u0000\u0000r\u0019\u0001\u0000\u0000\u0000"+
-		"st\u0007\u0002\u0000\u0000t\u001b\u0001\u0000\u0000\u0000\u0006 4?P\\"+
-		"h";
+		"\u0005\u0002L\b\u0002\n\u0002\f\u0002O\t\u0002\u0001\u0002\u0001\u0002"+
+		"\u0001\u0003\u0001\u0003\u0001\u0003\u0001\u0003\u0001\u0003\u0001\u0003"+
+		"\u0001\u0003\u0001\u0003\u0001\u0003\u0001\u0004\u0001\u0004\u0001\u0004"+
+		"\u0001\u0004\u0001\u0004\u0001\u0004\u0001\u0004\u0005\u0004c\b\u0004"+
+		"\n\u0004\f\u0004f\t\u0004\u0001\u0004\u0001\u0004\u0001\u0004\u0001\u0004"+
+		"\u0001\u0004\u0001\u0004\u0003\u0004n\b\u0004\u0001\u0004\u0001\u0004"+
+		"\u0001\u0005\u0001\u0005\u0001\u0005\u0001\u0005\u0001\u0005\u0001\u0005"+
+		"\u0001\u0005\u0001\u0005\u0001\u0005\u0005\u0005{\b\u0005\n\u0005\f\u0005"+
+		"~\t\u0005\u0001\u0005\u0001\u0005\u0001\u0006\u0001\u0006\u0001\u0006"+
+		"\u0003\u0006\u0085\b\u0006\u0001\u0007\u0001\u0007\u0001\u0007\u0001\u0007"+
+		"\u0001\u0007\u0001\u0007\u0001\u0007\u0001\u0007\u0001\u0007\u0001\u0007"+
+		"\u0003\u0007\u0091\b\u0007\u0003\u0007\u0093\b\u0007\u0001\b\u0001\b\u0001"+
+		"\t\u0001\t\u0001\n\u0001\n\u0001\n\u0005\n\u009c\b\n\n\n\f\n\u009f\t\n"+
+		"\u0001\u000b\u0001\u000b\u0001\u000b\u0001\u000b\u0001\f\u0001\f\u0001"+
+		"\f\u0001\f\u0001\f\u0003\f\u00aa\b\f\u0001\r\u0001\r\u0001\u000e\u0001"+
+		"\u000e\u0001\u000f\u0001\u000f\u0001\u000f\u0001\u000f\u0005\u000f\u00b4"+
+		"\b\u000f\n\u000f\f\u000f\u00b7\t\u000f\u0001\u0010\u0001\u0010\u0001\u0011"+
+		"\u0001\u0011\u0001\u0011\u0001\u0011\u0001\u0012\u0001\u0012\u0001\u0013"+
+		"\u0001\u0013\u0001\u0013\u0000\u0000\u0014\u0000\u0002\u0004\u0006\b\n"+
+		"\f\u000e\u0010\u0012\u0014\u0016\u0018\u001a\u001c\u001e \"$&\u0000\u0003"+
+		"\u0001\u0000\n\f\u0001\u0000\u001d!\u0001\u0000\"%\u00c3\u0000.\u0001"+
+		"\u0000\u0000\u0000\u00022\u0001\u0000\u0000\u0000\u00049\u0001\u0000\u0000"+
+		"\u0000\u0006R\u0001\u0000\u0000\u0000\b[\u0001\u0000\u0000\u0000\nq\u0001"+
+		"\u0000\u0000\u0000\f\u0081\u0001\u0000\u0000\u0000\u000e\u0092\u0001\u0000"+
+		"\u0000\u0000\u0010\u0094\u0001\u0000\u0000\u0000\u0012\u0096\u0001\u0000"+
+		"\u0000\u0000\u0014\u0098\u0001\u0000\u0000\u0000\u0016\u00a0\u0001\u0000"+
+		"\u0000\u0000\u0018\u00a4\u0001\u0000\u0000\u0000\u001a\u00ab\u0001\u0000"+
+		"\u0000\u0000\u001c\u00ad\u0001\u0000\u0000\u0000\u001e\u00af\u0001\u0000"+
+		"\u0000\u0000 \u00b8\u0001\u0000\u0000\u0000\"\u00ba\u0001\u0000\u0000"+
+		"\u0000$\u00be\u0001\u0000\u0000\u0000&\u00c0\u0001\u0000\u0000\u0000("+
+		"/\u0003\u0002\u0001\u0000)/\u0003\u0004\u0002\u0000*/\u0003\u0006\u0003"+
+		"\u0000+/\u0003\u0018\f\u0000,/\u0003\b\u0004\u0000-/\u0003\n\u0005\u0000"+
+		".(\u0001\u0000\u0000\u0000.)\u0001\u0000\u0000\u0000.*\u0001\u0000\u0000"+
+		"\u0000.+\u0001\u0000\u0000\u0000.,\u0001\u0000\u0000\u0000.-\u0001\u0000"+
+		"\u0000\u0000/0\u0001\u0000\u0000\u000001\u0005\u0000\u0000\u00011\u0001"+
+		"\u0001\u0000\u0000\u000023\u0005\u0001\u0000\u000034\u0005\u001c\u0000"+
+		"\u000045\u0005\u0002\u0000\u000056\u0003\u001c\u000e\u000067\u0005\u0003"+
+		"\u0000\u000078\u0003\u001e\u000f\u00008\u0003\u0001\u0000\u0000\u0000"+
+		"9:\u0005\u0004\u0000\u0000:;\u0005\u0005\u0000\u0000;<\u0003\u001c\u000e"+
+		"\u0000<=\u0005\u001a\u0000\u0000=B\u0003\u001a\r\u0000>?\u0005\u0019\u0000"+
+		"\u0000?A\u0003\u001a\r\u0000@>\u0001\u0000\u0000\u0000AD\u0001\u0000\u0000"+
+		"\u0000B@\u0001\u0000\u0000\u0000BC\u0001\u0000\u0000\u0000CE\u0001\u0000"+
+		"\u0000\u0000DB\u0001\u0000\u0000\u0000EF\u0005\u001b\u0000\u0000FG\u0005"+
+		"\u0006\u0000\u0000GH\u0005\u001a\u0000\u0000HM\u0003&\u0013\u0000IJ\u0005"+
+		"\u0019\u0000\u0000JL\u0003&\u0013\u0000KI\u0001\u0000\u0000\u0000LO\u0001"+
+		"\u0000\u0000\u0000MK\u0001\u0000\u0000\u0000MN\u0001\u0000\u0000\u0000"+
+		"NP\u0001\u0000\u0000\u0000OM\u0001\u0000\u0000\u0000PQ\u0005\u001b\u0000"+
+		"\u0000Q\u0005\u0001\u0000\u0000\u0000RS\u0005\u0007\u0000\u0000ST\u0003"+
+		"\u001c\u000e\u0000TU\u0005\b\u0000\u0000UV\u0003\u0014\n\u0000VW\u0005"+
+		"\u0003\u0000\u0000WX\u0003\u0010\b\u0000XY\u0005\u001d\u0000\u0000YZ\u0003"+
+		"\u0012\t\u0000Z\u0007\u0001\u0000\u0000\u0000[\\\u0005\u000f\u0000\u0000"+
+		"\\]\u0005\u000e\u0000\u0000]^\u0003\u001c\u000e\u0000^_\u0005\u001a\u0000"+
+		"\u0000_d\u0003\f\u0006\u0000`a\u0005\u0019\u0000\u0000ac\u0003\f\u0006"+
+		"\u0000b`\u0001\u0000\u0000\u0000cf\u0001\u0000\u0000\u0000db\u0001\u0000"+
+		"\u0000\u0000de\u0001\u0000\u0000\u0000em\u0001\u0000\u0000\u0000fd\u0001"+
+		"\u0000\u0000\u0000gh\u0005\u0019\u0000\u0000hi\u0005\u0010\u0000\u0000"+
+		"ij\u0005\u001a\u0000\u0000jk\u0003\u0010\b\u0000kl\u0005\u001b\u0000\u0000"+
+		"ln\u0001\u0000\u0000\u0000mg\u0001\u0000\u0000\u0000mn\u0001\u0000\u0000"+
+		"\u0000no\u0001\u0000\u0000\u0000op\u0005\u001b\u0000\u0000p\t\u0001\u0000"+
+		"\u0000\u0000qr\u0005\u000f\u0000\u0000rs\u0005\r\u0000\u0000st\u0005&"+
+		"\u0000\u0000tu\u0005\u0016\u0000\u0000uv\u0003\u001c\u000e\u0000vw\u0005"+
+		"\u001a\u0000\u0000w|\u0003\u001a\r\u0000xy\u0005\u0019\u0000\u0000y{\u0003"+
+		"\u001a\r\u0000zx\u0001\u0000\u0000\u0000{~\u0001\u0000\u0000\u0000|z\u0001"+
+		"\u0000\u0000\u0000|}\u0001\u0000\u0000\u0000}\u007f\u0001\u0000\u0000"+
+		"\u0000~|\u0001\u0000\u0000\u0000\u007f\u0080\u0005\u001b\u0000\u0000\u0080"+
+		"\u000b\u0001\u0000\u0000\u0000\u0081\u0082\u0003\u001a\r\u0000\u0082\u0084"+
+		"\u0003\u000e\u0007\u0000\u0083\u0085\u0005\u0010\u0000\u0000\u0084\u0083"+
+		"\u0001\u0000\u0000\u0000\u0084\u0085\u0001\u0000\u0000\u0000\u0085\r\u0001"+
+		"\u0000\u0000\u0000\u0086\u0093\u0005\u0012\u0000\u0000\u0087\u0093\u0005"+
+		"\u0013\u0000\u0000\u0088\u0093\u0005\u0014\u0000\u0000\u0089\u0093\u0005"+
+		"\u0011\u0000\u0000\u008a\u0093\u0005\u0015\u0000\u0000\u008b\u0093\u0005"+
+		"\u0018\u0000\u0000\u008c\u0090\u0005\u0017\u0000\u0000\u008d\u008e\u0005"+
+		"\u001a\u0000\u0000\u008e\u008f\u0005$\u0000\u0000\u008f\u0091\u0005\u001b"+
+		"\u0000\u0000\u0090\u008d\u0001\u0000\u0000\u0000\u0090\u0091\u0001\u0000"+
+		"\u0000\u0000\u0091\u0093\u0001\u0000\u0000\u0000\u0092\u0086\u0001\u0000"+
+		"\u0000\u0000\u0092\u0087\u0001\u0000\u0000\u0000\u0092\u0088\u0001\u0000"+
+		"\u0000\u0000\u0092\u0089\u0001\u0000\u0000\u0000\u0092\u008a\u0001\u0000"+
+		"\u0000\u0000\u0092\u008b\u0001\u0000\u0000\u0000\u0092\u008c\u0001\u0000"+
+		"\u0000\u0000\u0093\u000f\u0001\u0000\u0000\u0000\u0094\u0095\u0003\u001a"+
+		"\r\u0000\u0095\u0011\u0001\u0000\u0000\u0000\u0096\u0097\u0003&\u0013"+
+		"\u0000\u0097\u0013\u0001\u0000\u0000\u0000\u0098\u009d\u0003\u0016\u000b"+
+		"\u0000\u0099\u009a\u0005\u0019\u0000\u0000\u009a\u009c\u0003\u0016\u000b"+
+		"\u0000\u009b\u0099\u0001\u0000\u0000\u0000\u009c\u009f\u0001\u0000\u0000"+
+		"\u0000\u009d\u009b\u0001\u0000\u0000\u0000\u009d\u009e\u0001\u0000\u0000"+
+		"\u0000\u009e\u0015\u0001\u0000\u0000\u0000\u009f\u009d\u0001\u0000\u0000"+
+		"\u0000\u00a0\u00a1\u0003\u001a\r\u0000\u00a1\u00a2\u0005\u001d\u0000\u0000"+
+		"\u00a2\u00a3\u0003&\u0013\u0000\u00a3\u0017\u0001\u0000\u0000\u0000\u00a4"+
+		"\u00a5\u0005\t\u0000\u0000\u00a5\u00a6\u0005\u0002\u0000\u0000\u00a6\u00a9"+
+		"\u0003\u001c\u000e\u0000\u00a7\u00a8\u0005\u0003\u0000\u0000\u00a8\u00aa"+
+		"\u0003\u0014\n\u0000\u00a9\u00a7\u0001\u0000\u0000\u0000\u00a9\u00aa\u0001"+
+		"\u0000\u0000\u0000\u00aa\u0019\u0001\u0000\u0000\u0000\u00ab\u00ac\u0005"+
+		"&\u0000\u0000\u00ac\u001b\u0001\u0000\u0000\u0000\u00ad\u00ae\u0005&\u0000"+
+		"\u0000\u00ae\u001d\u0001\u0000\u0000\u0000\u00af\u00b5\u0003\"\u0011\u0000"+
+		"\u00b0\u00b1\u0003 \u0010\u0000\u00b1\u00b2\u0003\"\u0011\u0000\u00b2"+
+		"\u00b4\u0001\u0000\u0000\u0000\u00b3\u00b0\u0001\u0000\u0000\u0000\u00b4"+
+		"\u00b7\u0001\u0000\u0000\u0000\u00b5\u00b3\u0001\u0000\u0000\u0000\u00b5"+
+		"\u00b6\u0001\u0000\u0000\u0000\u00b6\u001f\u0001\u0000\u0000\u0000\u00b7"+
+		"\u00b5\u0001\u0000\u0000\u0000\u00b8\u00b9\u0007\u0000\u0000\u0000\u00b9"+
+		"!\u0001\u0000\u0000\u0000\u00ba\u00bb\u0003\u001a\r\u0000\u00bb\u00bc"+
+		"\u0003$\u0012\u0000\u00bc\u00bd\u0003&\u0013\u0000\u00bd#\u0001\u0000"+
+		"\u0000\u0000\u00be\u00bf\u0007\u0001\u0000\u0000\u00bf%\u0001\u0000\u0000"+
+		"\u0000\u00c0\u00c1\u0007\u0002\u0000\u0000\u00c1\'\u0001\u0000\u0000\u0000"+
+		"\f.BMdm|\u0084\u0090\u0092\u009d\u00a9\u00b5";
 	public static final ATN _ATN =
 		new ATNDeserializer().deserialize(_serializedATN.toCharArray());
 	static {
