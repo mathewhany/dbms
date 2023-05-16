@@ -40,8 +40,10 @@ public class RowsIterator implements Iterator<Row> {
             }
 
             try {
-                Page currentPage = pageManager.loadPage(pagesIterator.next());
+                String pageId = pagesIterator.next();
+                Page currentPage = pageManager.loadPage(pageId);
                 rowsIterators = currentPage.getRows().iterator();
+
                 return nextRow();
             } catch (DBAppException e) {
                 throw new RuntimeException(e);

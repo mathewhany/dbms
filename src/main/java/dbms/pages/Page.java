@@ -94,6 +94,7 @@ public class Page implements Serializable {
         } catch (CloneNotSupportedException e) {
             // This should never happen
         }
+//        System.out.println("requiredRow: " + requiredRow.getClusteringKeyValue());
         if (clusteringKeyType.compare(requiredRow.getClusteringKeyValue(), clusteringKeyValue) !=
             0) {
 //            throw new DBAppException("Row not found");

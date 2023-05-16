@@ -8,4 +8,6 @@ public interface TableManager {
     void createTable(Table table) throws DBAppException;
 
     void saveTable(Table table) throws DBAppException;
+
+    void preloadIndices() throws DBAppException;
 }

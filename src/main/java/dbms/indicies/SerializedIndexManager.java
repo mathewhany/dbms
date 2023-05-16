@@ -1,7 +1,6 @@
 package dbms.indicies;
 
 import dbms.DBAppException;
-import dbms.pages.Page;
 import dbms.tables.Table;
 
 import java.io.*;
@@ -12,6 +11,7 @@ import java.util.Hashtable;
 public class SerializedIndexManager implements IndexManager {
     private final String indexDir;
     private final Hashtable<String, IndexFactory> indexFactories;
+    private final Hashtable<String, Index> indicesCache = new Hashtable<>();
 
     public SerializedIndexManager(
         String indexDir,
@@ -28,9 +28,15 @@ public class SerializedIndexManager implements IndexManager {
     }
 
     public Index loadIndex(String indexName, String tableName) throws DBAppException {
+        if (indicesCache.containsKey(indexName + "-" + tableName)) {
+            return indicesCache.get(indexName + "-" + tableName);
+        }
+
         String filePath = getFilePath(indexName, tableName);
         try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(filePath))) {
-            return (Index) ois.readObject();
+            Index index = (Index) ois.readObject();
+            indicesCache.put(indexName + "-" + tableName, index);
+            return index;
         } catch (IOException e) {
             throw new DBAppException("Index file not found: " + filePath, e);
         } catch (ClassNotFoundException e) {

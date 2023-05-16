@@ -18,8 +18,6 @@ import dbms.datatype.DataType;
 import java.util.*;
 
 public class Table {
-    private static final boolean SORT_INDEX_RESULTS_BY_CLUSTERING_KEY = false;
-
     private final String tableName;
     private final String clusteringKeyColumn;
     private final Hashtable<String, String> columnTypes = new Hashtable<>();
@@ -227,6 +225,18 @@ public class Table {
         }
 
 
+        Hashtable<String, Index> indices = new Hashtable<>();
+        for (String columnName : newValues.keySet()) {
+            String indexName = indexNames.get(columnName);
+
+            if (indexName == null || indices.containsKey(columnName)) {
+                continue;
+            }
+
+            Index index = indexManager.loadIndex(indexName, tableName);
+            indices.put(columnName, index);
+        }
+
         for (String pageId : pagesToUpdate) {
             Page page = pageManager.loadPage(pageId);
             UpdatedRow updatedRow = page.update(clusterKeyValueObj, newValues);
@@ -236,15 +246,17 @@ public class Table {
             System.gc();
 
             if (updatedRow == null) {
-                return;
+                continue;
             }
 
-            Hashtable<String, Index> indices = loadAllIndices();
             for (Index index : indices.values()) {
                 index.delete(updatedRow.getOldRow());
                 index.insert(updatedRow.getUpdatedRow());
-                indexManager.saveIndex(index);
             }
+        }
+
+        for (Index index : indices.values()) {
+            indexManager.saveIndex(index);
         }
     }
 
@@ -608,7 +620,7 @@ public class Table {
         }
 
         Iterator<String> indexIterator = index.find(ranges);
-        Iterator<String> indexResults = SORT_INDEX_RESULTS_BY_CLUSTERING_KEY
+        Iterator<String> indexResults = DeveloperFlags.SORT_OUTPUT_OF_INDEX
             ? new SortedPagesIterator(indexIterator)
             : indexIterator;
 

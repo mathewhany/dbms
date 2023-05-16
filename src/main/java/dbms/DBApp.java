@@ -82,8 +82,13 @@ public class DBApp {
                 dataTypes,
                 indexManager
             );
+
+            if (DeveloperFlags.PRELOAD_INDICES) {
+                tableManager.preloadIndices();
+            }
         } catch (DBAppException e) {
             System.out.println("Failed to load table manager");
+            e.printStackTrace();
         }
 
         try {

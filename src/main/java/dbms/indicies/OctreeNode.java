@@ -1,6 +1,7 @@
 package dbms.indicies;
 
 import dbms.DBAppException;
+import dbms.DeveloperFlags;
 import dbms.util.Range;
 import dbms.pages.Row;
 
@@ -161,8 +162,45 @@ public class OctreeNode implements Index, Serializable {
     }
 
     public Iterator<String> find(Vector<Range> ranges) {
-        System.out.println("Searching octree index" + this.name);
-        return new OctreeIterator(this, ranges, new HashSet<>());
+//        System.out.println("Searching octree index" + this.name);
+        if (DeveloperFlags.USE_OCTREE_ITERATOR) {
+            return new OctreeIterator(this, ranges, new HashSet<>());
+        } else {
+            HashSet<String> pages = new HashSet<>();
+            recursiveFind(ranges, pages);
+            return pages.iterator();
+        }
+    }
+
+    private void recursiveFind(Vector<Range> searchRanges, HashSet<String> output) {
+        for (Range searchRange : searchRanges) {
+            for (Range range : ranges) {
+                if (range.getColumnName().equalsIgnoreCase(searchRange.getColumnName())) {
+                    if (!searchRange.intersects(range)) {
+                        return;
+                    }
+                }
+            }
+        }
+
+        if (isLeaf()) {
+            for (Map.Entry<Hashtable<String, Object>, Vector<String>> entry : entries.entrySet()) {
+                boolean matches = true;
+                for (Range range : searchRanges) {
+                    if (!range.contains(entry.getKey().get(range.getColumnName()))) {
+                        matches = false;
+                    }
+                }
+
+                if (matches) {
+                    output.addAll(entry.getValue());
+                }
+            }
+        } else {
+            for (OctreeNode child : children) {
+                child.recursiveFind(searchRanges, output);
+            }
+        }
     }
 
     private int getIndex(Hashtable<String, Object> key) {

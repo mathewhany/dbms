@@ -23,6 +23,7 @@ public class StringDataType implements DataType {
         // https://piazza.com/class/lel8rsvwc4e7j6/post/56
         String startStr = ((String) start).toLowerCase();
         String endStr = ((String) end).toLowerCase();
+
         int N = Math.min(startStr.length(), endStr.length());
 
         int[] a1 = new int[N + 1];

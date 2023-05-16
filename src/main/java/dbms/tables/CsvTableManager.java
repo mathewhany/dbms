@@ -172,4 +172,24 @@ public class CsvTableManager implements TableManager {
 
         CsvLoader.save(metadataFilePath, tableRows);
     }
+
+    @Override
+    public void preloadIndices() throws DBAppException {
+        if (!new File(metadataFilePath).exists()) {
+            return;
+        }
+
+        Vector<Hashtable<String, String>> tableRows = CsvLoader.load(metadataFilePath);
+
+        for (Hashtable<String, String> row : tableRows) {
+            String tableName = row.get(HEADER_TABLE_NAME);
+            String indexName = row.get(HEADER_INDEX_NAME);
+            String indexType = row.get(HEADER_INDEX_TYPE);
+
+            if (!indexName.equals(NULL)) {
+                indexManager.loadIndex(indexName, tableName);
+            }
+        }
+    }
+
 }

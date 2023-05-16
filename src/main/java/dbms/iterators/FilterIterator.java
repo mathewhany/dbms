@@ -29,12 +29,11 @@ public class FilterIterator implements Iterator<Row> {
     }
 
     private Row nextRow() {
-        if (iterator.hasNext()) {
+        while (iterator.hasNext()) {
             Row row = iterator.next();
+
             if (expression.evaluate(row)) {
                 return row;
-            } else {
-                return nextRow();
             }
         }
 
